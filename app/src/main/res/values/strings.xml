@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">sea_battle</string>
+    <string name="title_activity_main2">Main2Activity</string>
+    <string name="play">Играть</string>
+    <string name="text_4">0 из 1</string>
+    <string name="text_3">0 из 2</string>
+    <string name="text_2">0 из 3</string>
+    <string name="text_1">0 из 4</string>
+</resources>
