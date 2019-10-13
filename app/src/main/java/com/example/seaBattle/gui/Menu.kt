@@ -21,7 +21,7 @@ class Menu : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(v: View?) {
         if (v!!.id == R.id.play_button) {
-            startActivity(Intent(this, GenerateField::class.java))
+            startActivity(Intent(this, CreateField::class.java))
         }
     }
 
