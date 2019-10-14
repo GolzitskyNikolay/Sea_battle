@@ -88,7 +88,7 @@ class CreateField : AppCompatActivity(),
         }
     }
 
-    private fun redrawUsualCells(
+    private fun redrawCellsFromTo(
         from: Int, to: Int,
         listOfCells: MutableList<Int>, isGoodMove: Boolean
     ) {
@@ -102,6 +102,87 @@ class CreateField : AppCompatActivity(),
                     getDrawable(R.drawable.button_bad_move)
             }
         }
+    }
+
+    private fun redrawCells(id: Int, logicForAdding: LogicForAdding, ship: Int) {
+        if ((id % 10 != 0 && ship == 2) || (id % 10 != 0 && id % 10 != 9 && ship == 3)
+            || (id % 10 != 0 && id % 10 != 9 && id % 10 != 8 && ship == 4)) {
+
+            Log.d("redrawCells", "first_variant")
+            if (logicForAdding.checkBeforeAdding(
+                    ship, id, true, field!!.cells
+                ) && !field!!.cells[id - 1].hasShip()
+            ) {
+                redrawCellsFromTo(
+                    id - 1, id - 2 + ship,
+                    cellsWithGoodMove, true
+                )
+
+            } else {
+                redrawCellsFromTo(
+                    id - 1, id - 2 + ship,
+                    cellsWithBadMove, false
+                )
+            }
+
+        } else {
+            Log.d("redrawCells", "second_variant")
+            if (id % 10 == 0 && ship in 2..4) {
+                if (logicForAdding.checkBeforeAdding(
+                        ship, id - ship + 1, true, field!!.cells
+                    ) && !field!!.cells[id - ship].hasShip()
+                ) {
+                    redrawCellsFromTo(
+                        id - ship, id - 1,
+                        cellsWithGoodMove, true
+                    )
+
+
+                } else {
+                    redrawCellsFromTo(
+                        id - ship, id - 1,
+                        cellsWithBadMove, false
+                    )
+                }
+
+
+            } else if (id % 10 == 9 && ship in 3..4) {
+                if (logicForAdding.checkBeforeAdding(
+                        ship, id - ship + 2, true, field!!.cells
+                    ) && !field!!.cells[id - ship + 1].hasShip()
+                ) {
+                    redrawCellsFromTo(
+                        id - ship + 1, id,
+                        cellsWithGoodMove, true
+                    )
+
+                } else {
+                    redrawCellsFromTo(
+                        id - ship + 1, id,
+                        cellsWithBadMove, false
+                    )
+                }
+
+
+            } else if (ship == 4) {
+                if (logicForAdding.checkBeforeAdding(
+                        ship, id - ship + 3, true, field!!.cells
+                    ) && !field!!.cells[id - ship + 2].hasShip()
+                ) {
+                    redrawCellsFromTo(
+                        id - ship + 2, id + 1,
+                        cellsWithGoodMove, true
+                    )
+
+                } else {
+                    redrawCellsFromTo(
+                        id - ship + 2, id + 1,
+                        cellsWithBadMove, false
+                    )
+                }
+            }
+        }
+
     }
 
 
@@ -130,184 +211,15 @@ class CreateField : AppCompatActivity(),
                     }
 
                     view.id == R.id.ship_2 -> {
-                        if (container!!.id % 10 != 0) {
-                            if (logicForAdding.checkBeforeAdding(
-                                    2, container.id, true, field!!.cells
-                                ) && !field!!.cells[container.id - 1].hasShip()
-                            ) {
-                                redrawUsualCells(
-                                    container.id - 1, container.id,
-                                    cellsWithGoodMove, true
-                                )
-
-                            } else {
-                                redrawUsualCells(
-                                    container.id - 1, container.id,
-                                    cellsWithBadMove, false
-                                )
-                            }
-
-                        } else {
-                            if (logicForAdding.checkBeforeAdding(
-                                    2, container.id - 1, true, field!!.cells
-                                ) && !field!!.cells[container.id - 2].hasShip()
-                            ) {
-                                redrawUsualCells(
-                                    container.id - 2, container.id - 1,
-                                    cellsWithGoodMove, true
-                                )
-
-
-                            } else {
-                                redrawUsualCells(
-                                    container.id - 2, container.id - 1,
-                                    cellsWithBadMove, false
-                                )
-                            }
-                        }
-
+                        redrawCells(container!!.id, logicForAdding, 2)
                     }
 
                     view.id == R.id.ship_3 -> {
-
-                        if (container!!.id % 10 != 0 && container.id % 10 != 9) {
-                            if (logicForAdding.checkBeforeAdding(
-                                    3, container.id, true, field!!.cells
-                                ) && !field!!.cells[container.id - 1].hasShip()
-                            ) {
-                                redrawUsualCells(
-                                    container.id - 1, container.id + 1,
-                                    cellsWithGoodMove, true
-                                )
-
-                            } else {
-                                redrawUsualCells(
-                                    container.id - 1, container.id + 1,
-                                    cellsWithBadMove, false
-                                )
-                            }
-
-                        } else {
-                            if (container.id % 10 == 0) {
-                                if (logicForAdding.checkBeforeAdding(
-                                        3, container.id - 2, true, field!!.cells
-                                    ) && !field!!.cells[container.id - 3].hasShip()
-                                ) {
-                                    redrawUsualCells(
-                                        container.id - 3, container.id - 1,
-                                        cellsWithGoodMove, true
-                                    )
-
-
-                                } else {
-                                    redrawUsualCells(
-                                        container.id - 3, container.id - 1,
-                                        cellsWithBadMove, false
-                                    )
-                                }
-                            } else {
-                                if (logicForAdding.checkBeforeAdding(
-                                        3, container.id - 1, true, field!!.cells
-                                    ) && !field!!.cells[container.id - 2].hasShip()
-                                ) {
-                                    redrawUsualCells(
-                                        container.id - 2, container.id,
-                                        cellsWithGoodMove, true
-                                    )
-
-
-                                } else {
-                                    redrawUsualCells(
-                                        container.id - 2, container.id,
-                                        cellsWithBadMove, false
-                                    )
-                                }
-                            }
-                        }
-
-
+                        redrawCells(container!!.id, logicForAdding, 3)
                     }
 
                     view.id == R.id.ship_4 -> {
-
-                        if (container!!.id % 10 != 0 && container.id % 10 != 9
-                            && container.id % 10 != 8
-                        ) {
-
-                            if (logicForAdding.checkBeforeAdding(
-                                    4, container.id, true, field!!.cells
-                                ) && !field!!.cells[container.id - 1].hasShip()
-                            ) {
-
-                                redrawUsualCells(
-                                    container.id - 1, container.id + 2,
-                                    cellsWithGoodMove, true
-                                )
-
-                            } else {
-                                redrawUsualCells(
-                                    container.id - 1, container.id + 2,
-                                    cellsWithBadMove, false
-                                )
-                            }
-
-                        } else {
-                            if (container.id % 10 == 0) {
-                                if (logicForAdding.checkBeforeAdding(
-                                        4, container.id - 3, true, field!!.cells
-                                    ) && !field!!.cells[container.id - 4].hasShip()
-                                ) {
-                                    redrawUsualCells(
-                                        container.id - 4, container.id - 1,
-                                        cellsWithGoodMove, true
-                                    )
-
-
-                                } else {
-                                    redrawUsualCells(
-                                        container.id - 4, container.id - 1,
-                                        cellsWithBadMove, false
-                                    )
-                                }
-
-                            } else if (container.id % 10 == 9) {
-                                if (logicForAdding.checkBeforeAdding(
-                                        4, container.id - 2, true, field!!.cells
-                                    ) && !field!!.cells[container.id - 3].hasShip()
-                                ) {
-                                    redrawUsualCells(
-                                        container.id - 3, container.id,
-                                        cellsWithGoodMove, true
-                                    )
-
-
-                                } else {
-                                    redrawUsualCells(
-                                        container.id - 3, container.id,
-                                        cellsWithBadMove, false
-                                    )
-                                }
-
-                            } else {
-                                if (logicForAdding.checkBeforeAdding(
-                                        4, container.id - 1, true, field!!.cells
-                                    ) && !field!!.cells[container.id - 2].hasShip()
-                                ) {
-                                    redrawUsualCells(
-                                        container.id - 2, container.id + 1,
-                                        cellsWithGoodMove, true
-                                    )
-
-
-                                } else {
-                                    redrawUsualCells(
-                                        container.id - 2, container.id + 1,
-                                        cellsWithBadMove, false
-                                    )
-                                }
-                            }
-                        }
-
+                        redrawCells(container!!.id, logicForAdding, 4)
                     }
                 }
             }
@@ -327,8 +239,6 @@ class CreateField : AppCompatActivity(),
                 cellsWithBadMove.clear()
                 cellsWithGoodMove.clear()
             }
-
-            DragEvent.ACTION_DRAG_ENDED -> Log.d("onDrag", "ACTION_DRAG_ENDED")
 
             DragEvent.ACTION_DROP -> {
                 Log.d("onDrag", "ACTION_DROP")
