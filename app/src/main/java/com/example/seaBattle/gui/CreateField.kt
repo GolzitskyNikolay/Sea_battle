@@ -88,12 +88,11 @@ class CreateField : AppCompatActivity(),
         }
     }
 
-    private fun redrawCellsFromTo(
-        from: Int, to: Int,
-        listOfCells: MutableList<Int>, isGoodMove: Boolean
-    ) {
+    private fun redrawFromTo(from: Int, to: Int, list: MutableList<Int>, isGoodMove: Boolean) {
+
+        //redraw cells horizontally
         for (id in from..to) {
-            listOfCells.add(id + 1)
+            list.add(id + 1)
             if (isGoodMove) {
                 field!!.cells[id].background =
                     getDrawable(R.drawable.button_good_move)
@@ -104,82 +103,41 @@ class CreateField : AppCompatActivity(),
         }
     }
 
-    private fun redrawCells(id: Int, logicForAdding: LogicForAdding, ship: Int) {
-        if ((id % 10 != 0 && ship == 2) || (id % 10 != 0 && id % 10 != 9 && ship == 3)
-            || (id % 10 != 0 && id % 10 != 9 && id % 10 != 8 && ship == 4)) {
-
-            Log.d("redrawCells", "first_variant")
-            if (logicForAdding.checkBeforeAdding(
-                    ship, id, true, field!!.cells
-                ) && !field!!.cells[id - 1].hasShip()
-            ) {
-                redrawCellsFromTo(
-                    id - 1, id - 2 + ship,
-                    cellsWithGoodMove, true
-                )
-
-            } else {
-                redrawCellsFromTo(
-                    id - 1, id - 2 + ship,
-                    cellsWithBadMove, false
-                )
-            }
+    /*
+    If we can add ship, then it's good move -> green cells,
+    else bad move -> red cells.
+    */
+    private fun knowBadOrGoodMoveAndRedrawCells(id: Int, logic: LogicForAdding, ship: Int) {
+        if (!field!!.cells[id - 1].hasShip() &&
+            logic.checkBeforeAdding(ship, id, true, field!!.cells)
+        ) {
+            redrawFromTo(id - 1, id - 2 + ship, cellsWithGoodMove, true)
 
         } else {
-            Log.d("redrawCells", "second_variant")
+            redrawFromTo(id - 1, id - 2 + ship, cellsWithBadMove, false)
+        }
+    }
+
+    private fun redrawCells(id: Int, logic: LogicForAdding, ship: Int) {
+
+        // if there is enough space, then we place the ship
+        // from the current cell to the right
+        if (ship == 1 || (id % 10 != 0 && ship == 2)
+            || (id % 10 != 0 && id % 10 != 9 && ship == 3)
+            || (id % 10 != 0 && id % 10 != 9 && id % 10 != 8 && ship == 4)
+        ) {
+            knowBadOrGoodMoveAndRedrawCells(id, logic, ship)
+
+        } else {
+            //place the ship to the left
             if (id % 10 == 0 && ship in 2..4) {
-                if (logicForAdding.checkBeforeAdding(
-                        ship, id - ship + 1, true, field!!.cells
-                    ) && !field!!.cells[id - ship].hasShip()
-                ) {
-                    redrawCellsFromTo(
-                        id - ship, id - 1,
-                        cellsWithGoodMove, true
-                    )
-
-
-                } else {
-                    redrawCellsFromTo(
-                        id - ship, id - 1,
-                        cellsWithBadMove, false
-                    )
-                }
-
+                knowBadOrGoodMoveAndRedrawCells(id - ship + 1, logic, ship)
 
             } else if (id % 10 == 9 && ship in 3..4) {
-                if (logicForAdding.checkBeforeAdding(
-                        ship, id - ship + 2, true, field!!.cells
-                    ) && !field!!.cells[id - ship + 1].hasShip()
-                ) {
-                    redrawCellsFromTo(
-                        id - ship + 1, id,
-                        cellsWithGoodMove, true
-                    )
-
-                } else {
-                    redrawCellsFromTo(
-                        id - ship + 1, id,
-                        cellsWithBadMove, false
-                    )
-                }
-
+                knowBadOrGoodMoveAndRedrawCells(id - ship + 2, logic, ship)
 
             } else if (ship == 4) {
-                if (logicForAdding.checkBeforeAdding(
-                        ship, id - ship + 3, true, field!!.cells
-                    ) && !field!!.cells[id - ship + 2].hasShip()
-                ) {
-                    redrawCellsFromTo(
-                        id - ship + 2, id + 1,
-                        cellsWithGoodMove, true
-                    )
-
-                } else {
-                    redrawCellsFromTo(
-                        id - ship + 2, id + 1,
-                        cellsWithBadMove, false
-                    )
-                }
+                knowBadOrGoodMoveAndRedrawCells(id - ship + 3, logic, ship)
             }
         }
 
@@ -196,18 +154,7 @@ class CreateField : AppCompatActivity(),
                 Log.d("onDrag", "ACTION_DRAG_ENTERED")
                 when {
                     view.id == R.id.ship_1 -> {
-                        if (!field!!.cells[container!!.id - 1].hasShip()
-                            && logicForAdding.checkBeforeAdding(
-                                1, container.id, true, field!!.cells
-                            )
-                        ) {
-                            cellsWithGoodMove.add(container.id)
-                            container.background = getDrawable(R.drawable.button_good_move)
-
-                        } else if (!field!!.cells[container.id - 1].hasShip()) {
-                            cellsWithBadMove.add(container.id)
-                            container.background = getDrawable(R.drawable.button_bad_move)
-                        }
+                        redrawCells(container!!.id, logicForAdding, 1)
                     }
 
                     view.id == R.id.ship_2 -> {
@@ -226,6 +173,8 @@ class CreateField : AppCompatActivity(),
 
             DragEvent.ACTION_DRAG_EXITED -> {
                 Log.d("onDrag", "ACTION_DRAG_EXITED")
+                Log.d("DRAG_EXITED_good_start", cellsWithGoodMove.toString())
+                Log.d("DRAG_EXITED_bad_start", cellsWithBadMove.toString())
                 val allSelectedCells = cellsWithGoodMove
                 allSelectedCells.addAll(cellsWithBadMove)
                 for (id in allSelectedCells) {
@@ -242,6 +191,8 @@ class CreateField : AppCompatActivity(),
 
             DragEvent.ACTION_DROP -> {
                 Log.d("onDrag", "ACTION_DROP")
+                Log.d("ACTION_DROP_good_start", cellsWithGoodMove.toString())
+                Log.d("ACTION_DROP_bad_start", cellsWithBadMove.toString())
 
                 view.visibility = View.VISIBLE
                 val owner = view.parent as ViewGroup
@@ -260,7 +211,11 @@ class CreateField : AppCompatActivity(),
 
                 }
                 cellsWithBadMove.clear()
+                cellsWithGoodMove.clear()
                 owner.addView(view)
+
+                Log.d("ACTION_DROP_good_end", cellsWithGoodMove.toString())
+                Log.d("ACTION_DROP_bad_end", cellsWithBadMove.toString())
 
             }
         }
