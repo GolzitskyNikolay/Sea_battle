@@ -15,4 +15,9 @@ class Field(context: Context) {
     var countOfDoubleDeck = 0
     var countOfThreeDeck = 0
     var countOfFourDeck = 0
+
+    var maxCountOfSingleDeck = 4
+    var maxCountOfDoubleDeck = 3
+    var maxCountOfThreeDeck = 2
+    var maxCountOfFourDeck = 1
 }

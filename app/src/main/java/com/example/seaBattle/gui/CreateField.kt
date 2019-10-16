@@ -8,8 +8,10 @@ import android.view.DragEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.GridLayout
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.seaBattle.R
 import com.example.seaBattle.core.Cell
@@ -17,11 +19,14 @@ import com.example.seaBattle.core.Field
 import com.example.seaBattle.core.LogicForAdding
 
 class CreateField : AppCompatActivity(),
-    View.OnDragListener, View.OnTouchListener {
+    View.OnDragListener, View.OnTouchListener, View.OnClickListener {
 
     private var field: Field? = null
     private var cellsWithGoodMove = mutableListOf<Int>()
     private var cellsWithBadMove = mutableListOf<Int>()
+    private var ship2IsHorizontal = true
+    private var ship3IsHorizontal = true
+    private var ship4IsHorizontal = true
 
     @SuppressLint("ResourceType", "ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,6 +55,14 @@ class CreateField : AppCompatActivity(),
         ship3.setOnTouchListener(this)
         ship4.setOnTouchListener(this)
 
+        val button2 = findViewById<Button>(R.id.rotate_2)
+        val button3 = findViewById<Button>(R.id.rotate_3)
+        val button4 = findViewById<Button>(R.id.rotate_4)
+
+        button2.setOnClickListener(this)
+        button3.setOnClickListener(this)
+        button4.setOnClickListener(this)
+
         for (i in 1..size * size) {
 
             val params = GridLayout.LayoutParams(
@@ -70,6 +83,65 @@ class CreateField : AppCompatActivity(),
             layout.addView(cell)
 
         }
+    }
+
+    // changeShipOrientation ship
+    override fun onClick(v: View?) {
+        if (v != null) {
+            when {
+
+                v.id == R.id.rotate_2 -> {
+                    ship2IsHorizontal = changeShipOrientation(
+                        R.id.ship_2, R.drawable.ship_2,
+                        R.drawable.ship_2_vertical, 2
+                    )
+                }
+
+                v.id == R.id.rotate_3 -> {
+                    ship3IsHorizontal = changeShipOrientation(
+                        R.id.ship_3, R.drawable.ship_3,
+                        R.drawable.ship_3_vertical, 3
+                    )
+                }
+
+                v.id == R.id.rotate_4 -> {
+                    ship4IsHorizontal = changeShipOrientation(
+                        R.id.ship_4, R.drawable.ship_4,
+                        R.drawable.ship_4_vertical, 4
+                    )
+                }
+            }
+        }
+    }
+
+    private fun changeShipOrientation(
+        id: Int, horizontal: Int,
+        vertical: Int, ship: Int
+    ): Boolean {
+        
+        val view = findViewById<ImageView>(id)
+        var shipIsHorizontal: Boolean? = null
+
+        when (ship) {
+            2 -> {
+                shipIsHorizontal = ship2IsHorizontal
+            }
+            3 -> {
+                shipIsHorizontal = ship3IsHorizontal
+            }
+            4 -> {
+                shipIsHorizontal = ship4IsHorizontal
+            }
+        }
+
+        return if (shipIsHorizontal!!) {
+            view.setImageResource(vertical)
+            false
+        } else {
+            view.setImageResource(horizontal)
+            true
+        }
+
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -173,8 +245,7 @@ class CreateField : AppCompatActivity(),
 
             DragEvent.ACTION_DRAG_EXITED -> {
                 Log.d("onDrag", "ACTION_DRAG_EXITED")
-                Log.d("DRAG_EXITED_good_start", cellsWithGoodMove.toString())
-                Log.d("DRAG_EXITED_bad_start", cellsWithBadMove.toString())
+
                 val allSelectedCells = cellsWithGoodMove
                 allSelectedCells.addAll(cellsWithBadMove)
                 for (id in allSelectedCells) {
@@ -191,16 +262,20 @@ class CreateField : AppCompatActivity(),
 
             DragEvent.ACTION_DROP -> {
                 Log.d("onDrag", "ACTION_DROP")
-                Log.d("ACTION_DROP_good_start", cellsWithGoodMove.toString())
-                Log.d("ACTION_DROP_bad_start", cellsWithBadMove.toString())
 
                 view.visibility = View.VISIBLE
                 val owner = view.parent as ViewGroup
                 owner.removeView(view)
-                for (id in cellsWithGoodMove) {
-                    field!!.cells[id - 1].background = getDrawable(R.drawable.ship_1)
-                    field!!.cells[id - 1].setHasShip()
+
+                if (cellsWithGoodMove.isNotEmpty()) {
+                    updateText(view)
+
+                    for (id in cellsWithGoodMove) {
+                        field!!.cells[id - 1].background = getDrawable(R.drawable.ship_1)
+                        field!!.cells[id - 1].setHasShip()
+                    }
                 }
+
                 for (id in cellsWithBadMove) {
                     if (field!!.cells[id - 1].hasShip()) {
                         field!!.cells[id - 1].background = getDrawable(R.drawable.ship_1)
@@ -210,15 +285,61 @@ class CreateField : AppCompatActivity(),
                     }
 
                 }
+
                 cellsWithBadMove.clear()
                 cellsWithGoodMove.clear()
-                owner.addView(view)
 
-                Log.d("ACTION_DROP_good_end", cellsWithGoodMove.toString())
-                Log.d("ACTION_DROP_bad_end", cellsWithBadMove.toString())
-
+                if ((view.id == R.id.ship_1 &&
+                            field!!.countOfSingleDeck < field!!.maxCountOfSingleDeck) ||
+                    (view.id == R.id.ship_2 &&
+                            field!!.countOfDoubleDeck < field!!.maxCountOfDoubleDeck) ||
+                    (view.id == R.id.ship_3 &&
+                            field!!.countOfThreeDeck < field!!.maxCountOfThreeDeck) ||
+                    (view.id == R.id.ship_4 &&
+                            field!!.countOfFourDeck < field!!.maxCountOfFourDeck)
+                ) {
+                    owner.addView(view)
+                }
             }
         }
         return true
+    }
+
+    //update count of ships
+    private fun updateText(view: View?) {
+        var textView: TextView? = null
+        val newText = StringBuilder()
+
+        if (view != null) {
+            when {
+                view.id == R.id.ship_1 -> {
+                    field!!.countOfSingleDeck++
+                    textView = findViewById(R.id.text_1)
+                    newText.append(field!!.countOfSingleDeck)
+                }
+
+                view.id == R.id.ship_2 -> {
+                    field!!.countOfDoubleDeck++
+                    textView = findViewById(R.id.text_2)
+                    newText.append(field!!.countOfDoubleDeck)
+                }
+
+                view.id == R.id.ship_3 -> {
+                    field!!.countOfThreeDeck++
+                    textView = findViewById(R.id.text_3)
+                    newText.append(field!!.countOfThreeDeck)
+                }
+
+                view.id == R.id.ship_4 -> {
+                    field!!.countOfFourDeck++
+                    textView = findViewById(R.id.text_4)
+                    newText.append(field!!.countOfFourDeck)
+                }
+            }
+        }
+
+        val list = textView!!.text.split(" ")
+        newText.append(" ").append(list[1]).append(" ").append(list[2])
+        textView.text = newText
     }
 }
