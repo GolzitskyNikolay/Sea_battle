@@ -28,15 +28,17 @@ class CreateField : AppCompatActivity(),
     private var ship3IsHorizontal = true
     private var ship4IsHorizontal = true
 
-    @SuppressLint("ResourceType", "ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.grid)
 
-        val layout = findViewById<GridLayout>(R.id.gridLayout_field)
+        fillField()
 
-        field = Field(this)
-        val size = field!!.sizeOfField
+        addListeners()
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun addListeners() {
 
         val ship1 = findViewById<ImageView>(R.id.ship_1)
         val ship2 = findViewById<ImageView>(R.id.ship_2)
@@ -62,6 +64,12 @@ class CreateField : AppCompatActivity(),
         button2.setOnClickListener(this)
         button3.setOnClickListener(this)
         button4.setOnClickListener(this)
+    }
+
+    private fun fillField(){
+        field = Field(this)
+        val size = field!!.sizeOfField
+        val layout = findViewById<GridLayout>(R.id.gridLayout_field)
 
         for (i in 1..size * size) {
 
@@ -91,24 +99,30 @@ class CreateField : AppCompatActivity(),
             when {
 
                 v.id == R.id.rotate_2 -> {
-                    ship2IsHorizontal = changeShipOrientation(
-                        R.id.ship_2, R.drawable.ship_2,
-                        R.drawable.ship_2_vertical, 2
-                    )
+                    if (findViewById<ImageView>(R.id.ship_2) != null) {
+                        ship2IsHorizontal = changeShipOrientation(
+                            R.id.ship_2, R.drawable.ship_2,
+                            R.drawable.ship_2_vertical, 2
+                        )
+                    }
                 }
 
                 v.id == R.id.rotate_3 -> {
-                    ship3IsHorizontal = changeShipOrientation(
-                        R.id.ship_3, R.drawable.ship_3,
-                        R.drawable.ship_3_vertical, 3
-                    )
+                    if (findViewById<ImageView>(R.id.ship_3) != null) {
+                        ship3IsHorizontal = changeShipOrientation(
+                            R.id.ship_3, R.drawable.ship_3,
+                            R.drawable.ship_3_vertical, 3
+                        )
+                    }
                 }
 
                 v.id == R.id.rotate_4 -> {
-                    ship4IsHorizontal = changeShipOrientation(
-                        R.id.ship_4, R.drawable.ship_4,
-                        R.drawable.ship_4_vertical, 4
-                    )
+                    if (findViewById<ImageView>(R.id.ship_4) != null) {
+                        ship4IsHorizontal = changeShipOrientation(
+                            R.id.ship_4, R.drawable.ship_4,
+                            R.drawable.ship_4_vertical, 4
+                        )
+                    }
                 }
             }
         }
@@ -160,16 +174,33 @@ class CreateField : AppCompatActivity(),
         }
     }
 
-    private fun redrawFromTo(from: Int, to: Int, list: MutableList<Int>, isGoodMove: Boolean) {
+    private fun redrawFromTo(
+        id: Int, list: MutableList<Int>,
+        isGoodMove: Boolean, ship: Int, orientation: Boolean
+    ) {
 
         //redraw cells horizontally
-        for (id in from..to) {
+        if (orientation) {
+            for (e in id..id - 1 + ship) {
+                list.add(e + 1)
+            }
+        } else {
             list.add(id + 1)
+            list.add(id + 11)
+            if (ship == 3 || ship == 4) {
+                list.add(id + 21)
+            }
+            if (ship == 4) {
+                list.add(id + 31)
+            }
+
+        }
+        for (e in list) {
             if (isGoodMove) {
-                field!!.cells[id].background =
+                field!!.cells[e - 1].background =
                     getDrawable(R.drawable.button_good_move)
             } else {
-                field!!.cells[id].background =
+                field!!.cells[e - 1].background =
                     getDrawable(R.drawable.button_bad_move)
             }
         }
@@ -179,38 +210,62 @@ class CreateField : AppCompatActivity(),
     If we can add ship, then it's good move -> green cells,
     else bad move -> red cells.
     */
-    private fun knowBadOrGoodMoveAndRedrawCells(id: Int, logic: LogicForAdding, ship: Int) {
+    private fun knowBadOrGoodMoveAndRedrawCells(
+        id: Int, logic: LogicForAdding,
+        ship: Int, orientation: Boolean
+    ) {
         if (!field!!.cells[id - 1].hasShip() &&
-            logic.checkBeforeAdding(ship, id, true, field!!.cells)
+            logic.checkBeforeAdding(ship, id, orientation, field!!.cells)
         ) {
-            redrawFromTo(id - 1, id - 2 + ship, cellsWithGoodMove, true)
+            redrawFromTo(id - 1, cellsWithGoodMove, true, ship, orientation)
 
         } else {
-            redrawFromTo(id - 1, id - 2 + ship, cellsWithBadMove, false)
+            redrawFromTo(id - 1, cellsWithBadMove, false, ship, orientation)
         }
+
     }
 
-    private fun redrawCells(id: Int, logic: LogicForAdding, ship: Int) {
+    private fun redrawCells(id: Int, logic: LogicForAdding, ship: Int, orientation: Boolean) {
 
-        // if there is enough space, then we place the ship
-        // from the current cell to the right
-        if (ship == 1 || (id % 10 != 0 && ship == 2)
-            || (id % 10 != 0 && id % 10 != 9 && ship == 3)
-            || (id % 10 != 0 && id % 10 != 9 && id % 10 != 8 && ship == 4)
-        ) {
-            knowBadOrGoodMoveAndRedrawCells(id, logic, ship)
+        // horizontal ship
+        if (orientation) {
+            // if there is enough space, then we place the ship
+            // from the current cell to the right
+            if (ship == 1 || (id % 10 != 0 && ship == 2)
+                || (id % 10 != 0 && id % 10 != 9 && ship == 3)
+                || (id % 10 != 0 && id % 10 != 9 && id % 10 != 8 && ship == 4)
+            ) {
+                knowBadOrGoodMoveAndRedrawCells(id, logic, ship, orientation)
 
-        } else {
-            //place the ship to the left
-            if (id % 10 == 0 && ship in 2..4) {
-                knowBadOrGoodMoveAndRedrawCells(id - ship + 1, logic, ship)
+            } else {
+                //place the ship to the left
+                if (id % 10 == 0 && ship in 2..4) {
+                    knowBadOrGoodMoveAndRedrawCells(id - ship + 1, logic, ship, orientation)
 
-            } else if (id % 10 == 9 && ship in 3..4) {
-                knowBadOrGoodMoveAndRedrawCells(id - ship + 2, logic, ship)
+                } else if (id % 10 == 9 && ship in 3..4) {
+                    knowBadOrGoodMoveAndRedrawCells(id - ship + 2, logic, ship, orientation)
 
-            } else if (ship == 4) {
-                knowBadOrGoodMoveAndRedrawCells(id - ship + 3, logic, ship)
+                } else if (ship == 4) {
+                    knowBadOrGoodMoveAndRedrawCells(id - ship + 3, logic, ship, orientation)
+                }
             }
+        } else {
+
+            // if there is enough space, then we place the ship
+            // from the current cell to the bottom
+            if ((ship == 2 && ((id / 10 !in 9..10) || (id / 10 == 9 && id % 10 == 0))) ||
+                (ship == 3 && ((id / 10 !in 8..10) || (id / 10 == 8 && id % 10 == 0))) ||
+                (ship == 4 && ((id / 10 !in 7..10) || (id / 10 == 7 && id % 10 == 0)))
+            ) {
+                knowBadOrGoodMoveAndRedrawCells(id, logic, ship, orientation)
+            } else if ((id / 10 == 9 || id == 100) && ship in 2..4 && id != 90) {
+                knowBadOrGoodMoveAndRedrawCells(id - (ship - 1) * 10, logic, ship, orientation)
+            } else if ((id / 10 == 8 || id == 90) && ship in 3..4 && id != 80) {
+                knowBadOrGoodMoveAndRedrawCells(id - (ship - 2) * 10, logic, ship, orientation)
+            } else if (((id / 10 == 7) || (id == 80)) && id != 70 && ship == 4) {
+                knowBadOrGoodMoveAndRedrawCells(id - (ship - 3) * 10, logic, ship, orientation)
+            }
+
         }
 
     }
@@ -226,19 +281,19 @@ class CreateField : AppCompatActivity(),
                 Log.d("onDrag", "ACTION_DRAG_ENTERED")
                 when {
                     view.id == R.id.ship_1 -> {
-                        redrawCells(container!!.id, logicForAdding, 1)
+                        redrawCells(container!!.id, logicForAdding, 1, true)
                     }
 
                     view.id == R.id.ship_2 -> {
-                        redrawCells(container!!.id, logicForAdding, 2)
+                        redrawCells(container!!.id, logicForAdding, 2, ship2IsHorizontal)
                     }
 
                     view.id == R.id.ship_3 -> {
-                        redrawCells(container!!.id, logicForAdding, 3)
+                        redrawCells(container!!.id, logicForAdding, 3, ship3IsHorizontal)
                     }
 
                     view.id == R.id.ship_4 -> {
-                        redrawCells(container!!.id, logicForAdding, 4)
+                        redrawCells(container!!.id, logicForAdding, 4, ship4IsHorizontal)
                     }
                 }
             }
