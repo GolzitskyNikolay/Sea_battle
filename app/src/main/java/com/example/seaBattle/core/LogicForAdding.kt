@@ -15,22 +15,26 @@ class LogicForAdding {
 
         if (kindOfShip == 1) return checkCellsAroundCell(id, cells)
 
-        //horizontal orientation
-        if (orientation) {
-            if (kindOfShip == 2) {
-                if (!checkCellsAroundCell(id, cells)) return false
-                if (!checkCellsAroundCell(id + 1, cells)) return false
-            } else if (kindOfShip == 3) {
-                if (!checkCellsAroundCell(id, cells)) return false
-                if (!checkCellsAroundCell(id + 1, cells)) return false
-                if (!checkCellsAroundCell(id + 2, cells)) return false
-            } else if (kindOfShip == 4) {
-                if (!checkCellsAroundCell(id, cells)) return false
-                if (!checkCellsAroundCell(id + 1, cells)) return false
-                if (!checkCellsAroundCell(id + 2, cells)) return false
-                if (!checkCellsAroundCell(id + 3, cells)) return false
-            }
+        // for horizontal orientation we will check horizontal neighbours (id + 1, id + 2, id + 3)
+        // for vertical -> vertical (id + 10, id + 20, id + 30)
+        val needToAdd: Int? = if (orientation) {
+            1
+        } else {
+            10
         }
+
+        //for ship_2, ship_3, ship_4
+        if (!checkCellsAroundCell(id, cells)) return false
+        if (!checkCellsAroundCell(id + 1 * needToAdd!!, cells)) return false
+
+        if (kindOfShip == 3 || kindOfShip == 4) {
+            if (!checkCellsAroundCell(id + 2 * needToAdd, cells)) return false
+        }
+
+        if (kindOfShip == 4) {
+            if (!checkCellsAroundCell(id + 3 * needToAdd, cells)) return false
+        }
+
         return true
     }
 

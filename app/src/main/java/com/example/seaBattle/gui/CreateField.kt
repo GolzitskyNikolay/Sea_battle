@@ -118,7 +118,7 @@ class CreateField : AppCompatActivity(),
         id: Int, horizontal: Int,
         vertical: Int, ship: Int
     ): Boolean {
-        
+
         val view = findViewById<ImageView>(id)
         var shipIsHorizontal: Boolean? = null
 
