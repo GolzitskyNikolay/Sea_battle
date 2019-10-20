@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.util.Log
 import android.view.DragEvent
 import android.view.MotionEvent
@@ -229,7 +230,7 @@ class CreateField : AppCompatActivity(),
                     for (id in cellsWithGoodMove) {
                         field.cells[id - 1].background = getDrawable(R.drawable.ship_1)
                         field.cells[id - 1].setHasShip()
-                        field.ships[field.currentCountOfShips].add(id)
+                        field.ships.add(id.toString())
                     }
                     field.currentCountOfShips++
                 }
@@ -266,6 +267,13 @@ class CreateField : AppCompatActivity(),
                 ) {
                     val start = findViewById<Button>(R.id.start)
                     start.visibility = View.VISIBLE
+
+                    val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+
+                    val editor = preferences.edit()
+                    editor.putStringSet("cells with ship", field.ships)
+                    editor.apply()
+
                     start.setOnClickListener { startActivity(Intent(this, Play::class.java)) }
                 }
             }

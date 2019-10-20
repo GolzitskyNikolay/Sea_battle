@@ -1,6 +1,7 @@
 package com.example.seaBattle.core
 
 import android.content.Context
+import android.util.Log
 import android.widget.GridLayout
 import com.example.seaBattle.R
 
@@ -9,7 +10,7 @@ class Field {
     private var sizeOfField = 10
     var cells: Array<Cell> = emptyArray()
     var currentCountOfShips = 0
-    var ships: Array<HashSet<Int>> = emptyArray()
+    var ships = HashSet<String>()
 
     var countOfSingleDeck = 0
     var countOfDoubleDeck = 0
@@ -28,7 +29,6 @@ class Field {
         val size = field.sizeOfField
 
         field.cells = Array(size * size) { Cell(context) }
-        field.ships = Array(field.maxCountOfShips) { HashSet<Int>() }
 
         for (i in 1..size * size) {
 
@@ -251,14 +251,14 @@ class Field {
         return newShip
     }
 
-    fun getCellsAroundShip(ship: MutableList<Int>, botField: Field): ArrayList<Int> {
+    fun getCellsAroundShip(ship: MutableList<Int>, field: Field): ArrayList<Int> {
         val cellsAroundShip = ArrayList<Int>()
 
         for (i in 1..ship.size) {
             if (i == 1) {
-                cellsAroundShip.addAll(getCellsAroundCell(ship[i - 1], null, botField))
+                cellsAroundShip.addAll(getCellsAroundCell(ship[i - 1], null, field))
             } else {
-                cellsAroundShip.addAll(getCellsAroundCell(ship[i - 1], ship[i - 2], botField))
+                cellsAroundShip.addAll(getCellsAroundCell(ship[i - 1], ship[i - 2], field))
             }
         }
 
@@ -266,9 +266,9 @@ class Field {
     }
 
     private fun getCellsAroundCell(
-        currentCell: Int, cellBefore: Int?, botField: Field
+        currentCell: Int, cellBefore: Int?, field: Field
     ): ArrayList<Int> {
-        val size = botField.sizeOfField
+        val size = field.sizeOfField
 
         val result = ArrayList<Int>()
 
@@ -323,6 +323,33 @@ class Field {
         }
 
         return result
+    }
+
+    /*
+    If ship is destroyed -> return list of cells with ship, else -> null.
+     */
+    fun isShipDestroyed(
+        currentId: Int, field: Field, idBefore: Int?, ship: MutableList<Int>
+    ): MutableList<Int>? {
+        for (id in getCellsAroundCell(currentId, idBefore, field)) {
+            if (currentId != idBefore) {
+                Log.d(
+                    "isShipDestroyed", "curId = $currentId, " +
+                            "idBefore = $idBefore, ship = $ship, id = $id"
+                )
+                val cell = field.cells[id - 1]
+
+                if (cell.hasShip() && !cell.hasShot()) {
+                    ship.removeAll(ship)
+                    break
+                }
+                else if (cell.hasShip() && cell.hasShot()) {
+                    ship.add(id)
+                    isShipDestroyed(id, field, currentId, ship)
+                }
+            }
+        }
+        return ship
     }
 
 }
