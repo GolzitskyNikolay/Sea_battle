@@ -1,6 +1,7 @@
 package com.example.seaBattle.gui
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -9,19 +10,17 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.seaBattle.R
-import com.example.seaBattle.core.Cell
 import com.example.seaBattle.core.Field
 import com.example.seaBattle.core.LogicForAdding
 
 class CreateField : AppCompatActivity(),
     View.OnDragListener, View.OnTouchListener, View.OnClickListener {
 
-    private var field: Field? = null
+    private var field: Field = Field()
     private var cellsWithGoodMove = mutableListOf<Int>()
     private var cellsWithBadMove = mutableListOf<Int>()
     private var ship2IsHorizontal = true
@@ -32,7 +31,7 @@ class CreateField : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.grid)
 
-        fillField()
+        field.createEmptyField(field, findViewById(R.id.gridLayout_field), this)
 
         addListeners()
     }
@@ -64,36 +63,13 @@ class CreateField : AppCompatActivity(),
         button2.setOnClickListener(this)
         button3.setOnClickListener(this)
         button4.setOnClickListener(this)
-    }
 
-    private fun fillField(){
-        field = Field(this)
-        val size = field!!.sizeOfField
-        val layout = findViewById<GridLayout>(R.id.gridLayout_field)
-
-        for (i in 1..size * size) {
-
-            val params = GridLayout.LayoutParams(
-                GridLayout.spec(GridLayout.UNDEFINED, GridLayout.FILL, 1f),
-                GridLayout.spec(GridLayout.UNDEFINED, GridLayout.FILL, 1f)
-            )
-            params.height = 0
-            params.width = 0
-
-
-            val cell = Cell(this)
-            cell.setBackgroundResource(R.drawable.button_background)
-            cell.layoutParams = params
-            cell.id = i
+        for (cell in field.cells) {
             cell.setOnDragListener(this)
-
-            field!!.cells[i - 1] = cell
-            layout.addView(cell)
-
         }
     }
 
-    // changeShipOrientation ship
+    // change ship orientation
     override fun onClick(v: View?) {
         if (v != null) {
             when {
@@ -174,103 +150,6 @@ class CreateField : AppCompatActivity(),
         }
     }
 
-    private fun redrawFromTo(
-        id: Int, list: MutableList<Int>,
-        isGoodMove: Boolean, ship: Int, orientation: Boolean
-    ) {
-
-        //redraw cells horizontally
-        if (orientation) {
-            for (e in id..id - 1 + ship) {
-                list.add(e + 1)
-            }
-        } else {
-            list.add(id + 1)
-            list.add(id + 11)
-            if (ship == 3 || ship == 4) {
-                list.add(id + 21)
-            }
-            if (ship == 4) {
-                list.add(id + 31)
-            }
-
-        }
-        for (e in list) {
-            if (isGoodMove) {
-                field!!.cells[e - 1].background =
-                    getDrawable(R.drawable.button_good_move)
-            } else {
-                field!!.cells[e - 1].background =
-                    getDrawable(R.drawable.button_bad_move)
-            }
-        }
-    }
-
-    /*
-    If we can add ship, then it's good move -> green cells,
-    else bad move -> red cells.
-    */
-    private fun knowBadOrGoodMoveAndRedrawCells(
-        id: Int, logic: LogicForAdding,
-        ship: Int, orientation: Boolean
-    ) {
-        if (!field!!.cells[id - 1].hasShip() &&
-            logic.checkBeforeAdding(ship, id, orientation, field!!.cells)
-        ) {
-            redrawFromTo(id - 1, cellsWithGoodMove, true, ship, orientation)
-
-        } else {
-            redrawFromTo(id - 1, cellsWithBadMove, false, ship, orientation)
-        }
-
-    }
-
-    private fun redrawCells(id: Int, logic: LogicForAdding, ship: Int, orientation: Boolean) {
-
-        // horizontal ship
-        if (orientation) {
-            // if there is enough space, then we place the ship
-            // from the current cell to the right
-            if (ship == 1 || (id % 10 != 0 && ship == 2)
-                || (id % 10 != 0 && id % 10 != 9 && ship == 3)
-                || (id % 10 != 0 && id % 10 != 9 && id % 10 != 8 && ship == 4)
-            ) {
-                knowBadOrGoodMoveAndRedrawCells(id, logic, ship, orientation)
-
-            } else {
-                //place the ship to the left
-                if (id % 10 == 0 && ship in 2..4) {
-                    knowBadOrGoodMoveAndRedrawCells(id - ship + 1, logic, ship, orientation)
-
-                } else if (id % 10 == 9 && ship in 3..4) {
-                    knowBadOrGoodMoveAndRedrawCells(id - ship + 2, logic, ship, orientation)
-
-                } else if (ship == 4) {
-                    knowBadOrGoodMoveAndRedrawCells(id - ship + 3, logic, ship, orientation)
-                }
-            }
-        } else {
-
-            // if there is enough space, then we place the ship
-            // from the current cell to the bottom
-            if ((ship == 2 && ((id / 10 !in 9..10) || (id / 10 == 9 && id % 10 == 0))) ||
-                (ship == 3 && ((id / 10 !in 8..10) || (id / 10 == 8 && id % 10 == 0))) ||
-                (ship == 4 && ((id / 10 !in 7..10) || (id / 10 == 7 && id % 10 == 0)))
-            ) {
-                knowBadOrGoodMoveAndRedrawCells(id, logic, ship, orientation)
-            } else if ((id / 10 == 9 || id == 100) && ship in 2..4 && id != 90) {
-                knowBadOrGoodMoveAndRedrawCells(id - (ship - 1) * 10, logic, ship, orientation)
-            } else if ((id / 10 == 8 || id == 90) && ship in 3..4 && id != 80) {
-                knowBadOrGoodMoveAndRedrawCells(id - (ship - 2) * 10, logic, ship, orientation)
-            } else if (((id / 10 == 7) || (id == 80)) && id != 70 && ship == 4) {
-                knowBadOrGoodMoveAndRedrawCells(id - (ship - 3) * 10, logic, ship, orientation)
-            }
-
-        }
-
-    }
-
-
     override fun onDrag(container: View?, dragEvent: DragEvent?): Boolean {
         val view = dragEvent!!.localState as View
         val logicForAdding = LogicForAdding()
@@ -281,20 +160,42 @@ class CreateField : AppCompatActivity(),
                 Log.d("onDrag", "ACTION_DRAG_ENTERED")
                 when {
                     view.id == R.id.ship_1 -> {
-                        redrawCells(container!!.id, logicForAdding, 1, true)
+                        field.addInListCellsToRedraw(
+                            container!!.id, logicForAdding, 1, true, field, false,
+                            cellsWithGoodMove, cellsWithBadMove
+                        )
                     }
 
                     view.id == R.id.ship_2 -> {
-                        redrawCells(container!!.id, logicForAdding, 2, ship2IsHorizontal)
+                        field.addInListCellsToRedraw(
+                            container!!.id, logicForAdding, 2, ship2IsHorizontal, field, false,
+                            cellsWithGoodMove, cellsWithBadMove
+                        )
                     }
 
                     view.id == R.id.ship_3 -> {
-                        redrawCells(container!!.id, logicForAdding, 3, ship3IsHorizontal)
+                        field.addInListCellsToRedraw(
+                            container!!.id, logicForAdding, 3, ship3IsHorizontal, field, false,
+                            cellsWithGoodMove, cellsWithBadMove
+                        )
                     }
 
                     view.id == R.id.ship_4 -> {
-                        redrawCells(container!!.id, logicForAdding, 4, ship4IsHorizontal)
+                        field.addInListCellsToRedraw(
+                            container!!.id, logicForAdding, 4, ship4IsHorizontal, field, false,
+                            cellsWithGoodMove, cellsWithBadMove
+                        )
                     }
+                }
+
+                for (e in cellsWithGoodMove) {
+                    field.cells[e - 1].background =
+                        getDrawable(R.drawable.button_good_move)
+                }
+
+                for (e in cellsWithBadMove) {
+                    field.cells[e - 1].background =
+                        getDrawable(R.drawable.button_bad_move)
                 }
             }
 
@@ -304,10 +205,10 @@ class CreateField : AppCompatActivity(),
                 val allSelectedCells = cellsWithGoodMove
                 allSelectedCells.addAll(cellsWithBadMove)
                 for (id in allSelectedCells) {
-                    if (field!!.cells[id - 1].hasShip()) {
-                        field!!.cells[id - 1].background = getDrawable(R.drawable.ship_1)
+                    if (field.cells[id - 1].hasShip()) {
+                        field.cells[id - 1].background = getDrawable(R.drawable.ship_1)
                     } else {
-                        field!!.cells[id - 1].background =
+                        field.cells[id - 1].background =
                             getDrawable(R.drawable.button_background)
                     }
                 }
@@ -326,16 +227,18 @@ class CreateField : AppCompatActivity(),
                     updateText(view)
 
                     for (id in cellsWithGoodMove) {
-                        field!!.cells[id - 1].background = getDrawable(R.drawable.ship_1)
-                        field!!.cells[id - 1].setHasShip()
+                        field.cells[id - 1].background = getDrawable(R.drawable.ship_1)
+                        field.cells[id - 1].setHasShip()
+                        field.ships[field.currentCountOfShips].add(id)
                     }
+                    field.currentCountOfShips++
                 }
 
                 for (id in cellsWithBadMove) {
-                    if (field!!.cells[id - 1].hasShip()) {
-                        field!!.cells[id - 1].background = getDrawable(R.drawable.ship_1)
+                    if (field.cells[id - 1].hasShip()) {
+                        field.cells[id - 1].background = getDrawable(R.drawable.ship_1)
                     } else {
-                        field!!.cells[id - 1].background =
+                        field.cells[id - 1].background =
                             getDrawable(R.drawable.button_background)
                     }
 
@@ -345,15 +248,25 @@ class CreateField : AppCompatActivity(),
                 cellsWithGoodMove.clear()
 
                 if ((view.id == R.id.ship_1 &&
-                            field!!.countOfSingleDeck < field!!.maxCountOfSingleDeck) ||
+                            field.countOfSingleDeck < field.maxCountOfSingleDeck) ||
                     (view.id == R.id.ship_2 &&
-                            field!!.countOfDoubleDeck < field!!.maxCountOfDoubleDeck) ||
+                            field.countOfDoubleDeck < field.maxCountOfDoubleDeck) ||
                     (view.id == R.id.ship_3 &&
-                            field!!.countOfThreeDeck < field!!.maxCountOfThreeDeck) ||
+                            field.countOfThreeDeck < field.maxCountOfThreeDeck) ||
                     (view.id == R.id.ship_4 &&
-                            field!!.countOfFourDeck < field!!.maxCountOfFourDeck)
+                            field.countOfFourDeck < field.maxCountOfFourDeck)
                 ) {
                     owner.addView(view)
+                }
+
+                if ((field.countOfSingleDeck == field.maxCountOfSingleDeck) &&
+                    (field.countOfDoubleDeck == field.maxCountOfDoubleDeck) &&
+                    (field.countOfThreeDeck == field.maxCountOfThreeDeck) &&
+                    (field.countOfFourDeck == field.maxCountOfFourDeck)
+                ) {
+                    val start = findViewById<Button>(R.id.start)
+                    start.visibility = View.VISIBLE
+                    start.setOnClickListener { startActivity(Intent(this, Play::class.java)) }
                 }
             }
         }
@@ -368,27 +281,27 @@ class CreateField : AppCompatActivity(),
         if (view != null) {
             when {
                 view.id == R.id.ship_1 -> {
-                    field!!.countOfSingleDeck++
+                    field.countOfSingleDeck++
                     textView = findViewById(R.id.text_1)
-                    newText.append(field!!.countOfSingleDeck)
+                    newText.append(field.countOfSingleDeck)
                 }
 
                 view.id == R.id.ship_2 -> {
-                    field!!.countOfDoubleDeck++
+                    field.countOfDoubleDeck++
                     textView = findViewById(R.id.text_2)
-                    newText.append(field!!.countOfDoubleDeck)
+                    newText.append(field.countOfDoubleDeck)
                 }
 
                 view.id == R.id.ship_3 -> {
-                    field!!.countOfThreeDeck++
+                    field.countOfThreeDeck++
                     textView = findViewById(R.id.text_3)
-                    newText.append(field!!.countOfThreeDeck)
+                    newText.append(field.countOfThreeDeck)
                 }
 
                 view.id == R.id.ship_4 -> {
-                    field!!.countOfFourDeck++
+                    field.countOfFourDeck++
                     textView = findViewById(R.id.text_4)
-                    newText.append(field!!.countOfFourDeck)
+                    newText.append(field.countOfFourDeck)
                 }
             }
         }

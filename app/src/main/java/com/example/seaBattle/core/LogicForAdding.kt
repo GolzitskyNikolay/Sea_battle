@@ -1,5 +1,7 @@
 package com.example.seaBattle.core
 
+import android.util.Log
+
 class LogicForAdding {
 
     /*
@@ -45,6 +47,8 @@ class LogicForAdding {
         idOfCurrentCell: Int,
         cells: Array<Cell>
     ): Boolean {
+
+        if (idOfCurrentCell !in 1..100) return false
 
         //above and left
         if ((idOfCurrentCell > 10) && (idOfCurrentCell % 10 != 1)

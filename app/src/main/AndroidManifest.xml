@@ -11,13 +11,20 @@
         android:theme="@style/AppTheme">
 
         <activity android:name="com.example.seaBattle.gui.Menu">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+        </activity>
+        <activity android:name=".gui.CreateField" />
+        <activity android:name=".gui.Play" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".gui.CreateField" />
 
     </application>
 

@@ -15,8 +15,8 @@ class Menu : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.menu_activity)
 
-        val play_button = findViewById<Button>(R.id.play_button)
-        play_button.setOnClickListener(this)
+        val play = findViewById<Button>(R.id.play_button)
+        play.setOnClickListener(this)
     }
 
     override fun onClick(v: View?) {
