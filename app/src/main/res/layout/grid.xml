@@ -201,7 +201,7 @@
         app:layout_constraintDimensionRatio="1"
         app:layout_constraintEnd_toEndOf="parent"
         android:visibility="invisible"
-        android:background="@drawable/start"
+        android:background="@drawable/play"
         app:layout_constraintStart_toEndOf="@+id/gridLayout_field"
         app:layout_constraintTop_toTopOf="@+id/guideline_0.8_hor" />
 
