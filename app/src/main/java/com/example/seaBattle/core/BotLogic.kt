@@ -25,6 +25,7 @@ class BotLogic() {
     }
 
     fun getIdOfNextCell(): Int? {
+        if (idOfCellsToOpen.isEmpty()) return null
         val result = idOfCellsToOpen[0]
         idOfCellsToOpen.remove(result)
         closedCells.remove(result)
@@ -77,7 +78,7 @@ class BotLogic() {
     }
 
     fun tryToKnowOrientation(cells: Array<Cell>) {
-        if (cells[idOfCellsToOpen[0]].hasShip()) {
+        if (idOfCellsToOpen.isNotEmpty() && cells[idOfCellsToOpen[0]].hasShip()) {
             shipOrientation = nextCellWasCalledFromHorizontal
         }
     }

@@ -127,35 +127,34 @@ class Play : AppCompatActivity() {
 
             turn.setImageResource(R.drawable.left)
 
-//            Log.d("changeTurn", "cells = ${botLogic.idOfCellsToOpen}")
-//            var id = botLogic.getIdOfNextCell()
-//
-//            if (id != null) {
-//                while (openCell(userField, userField.cells[id!! - 1])) {
-//                    Log.d("changeTurn", "id = $id")
-//                    Log.d("changeTurn", "cells = ${botLogic.idOfCellsToOpen}")
-//
-//                    botLogic.getCellsAroundWoundedCell(id, userField.cells)
-//
-//                    id = botLogic.getIdOfNextCell()
-//
-//                    if (botLogic.getOrientation() == null) {
-//                        botLogic.tryToKnowOrientation(userField.cells)
-//                    }
-//
-//                    Thread.sleep(10)
-//                }
-//
-//                //bot finished his moves
-//            } else {
-//                botLogic.chooseRandomCell()
-//
-//                turn.setImageResource(R.drawable.right)
-//
-//                botField.cells.forEach { cell ->
-//                    cell.isEnabled = true
+            var id = botLogic.getIdOfNextCell()
+
+            if (id != null) {
+                while (openCell(userField, userField.cells[id!! - 1])) {
+                    Log.d("changeTurn", "id = $id")
+                    Log.d("changeTurn", "cells = ${botLogic.idOfCellsToOpen}")
+
+                    botLogic.getCellsAroundWoundedCell(id, userField.cells)
+
+                    id = botLogic.getIdOfNextCell()
+
+                    if (botLogic.getOrientation() == null) {
+                        botLogic.tryToKnowOrientation(userField.cells)
+                    }
+
+                    Thread.sleep(1000)
                 }
-//            }
-//        }
+
+                //bot finished his moves
+            } else {
+                botLogic.chooseRandomCell()
+            }
+
+            turn.setImageResource(R.drawable.right)
+
+            botField.cells.forEach { cell ->
+                cell.isEnabled = true
+            }
+        }
     }
 }
