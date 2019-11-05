@@ -1,7 +1,5 @@
 package com.example.seaBattle.core
 
-import android.util.Log
-
 class LogicForAdding {
 
     /*
