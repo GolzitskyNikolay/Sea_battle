@@ -1,18 +1,13 @@
 package com.example.seaBattle.core
 
-class BotLogic() {
+import android.util.Log
+
+class BotLogic {
 
     //consists id of cells, that can has ship (first cell to open we choose by random)
-    val idOfCellsToOpen = mutableListOf((1..100).random())
+    val idOfCellsToOpen = mutableListOf<Int>(43)
 
-    //null -> we don't know orientation, true -> horizontal, false -> vertical
-    private var shipOrientation: Boolean? = null
-
-    //remember direction from last cell to next cell, trying to know ship orientation
-    // (id before = 80, next id = 81 => nextCellWasCalledFromHorizontal = true)
-    private var nextCellWasCalledFromHorizontal: Boolean = true
-
-    private val closedCells: MutableSet<Int> = mutableSetOf()
+    val closedCells: MutableSet<Int> = mutableSetOf()
 
     init {
         for (i in 1..100) {
@@ -20,9 +15,11 @@ class BotLogic() {
         }
     }
 
-    fun getOrientation(): Boolean? {
-        return shipOrientation
-    }
+    //remember it to know ship orientation
+    var lastIdWithShip: Int? = null
+
+    //null -> we don't know orientation, true -> horizontal, false -> vertical
+    var shipOrientation: Boolean? = null
 
     fun getIdOfNextCell(): Int? {
         if (idOfCellsToOpen.isEmpty()) return null
@@ -36,40 +33,39 @@ class BotLogic() {
         idOfCellsToOpen.add(closedCells.random())
     }
 
-    fun getCellsAroundWoundedCell(id: Int, cells: Array<Cell>) {
+    fun getUnopenedCellsAroundWoundedCell(id: Int, cells: Array<Cell>) {
 
         //horizontal or null
         if (shipOrientation != false) {
+            Log.d("getCellsAroundWounded", "horizontal or null")
 
             //right
-            if (id % 10 in 1..9 && !cells[id + 1].hasShot()) {
+            if (id % 10 in 1..9 && !cells[id].hasShot()) {
+                Log.d("getCellsAroundWounded", "right")
                 idOfCellsToOpen.add(id + 1)
-                nextCellWasCalledFromHorizontal = true
             }
 
             //left
-            if (id % 10 in 2..9 || id % 10 == 0 && !cells[id - 1].hasShot()) {
+            if ((id % 10 in 2..9 || id % 10 == 0) && !cells[id - 2].hasShot()) {
+                Log.d("getCellsAroundWounded", "left")
                 idOfCellsToOpen.add(id - 1)
-                nextCellWasCalledFromHorizontal = true
             }
-
-            //if first -> then check only horizontal
-            return
         }
 
         //vertical or null
         if (shipOrientation != true) {
+            Log.d("getCellsAroundWounded", "vertical or null")
 
             //above
             if (id !in 1..10 && !cells[id - 10].hasShot()) {
+                Log.d("getCellsAroundWounded", "above")
                 idOfCellsToOpen.add(id - 10)
-                nextCellWasCalledFromHorizontal = false
             }
 
             //under
             if (id !in 91..100 && !cells[id + 10].hasShot()) {
+                Log.d("getCellsAroundWounded", "under")
                 idOfCellsToOpen.add(id + 10)
-                nextCellWasCalledFromHorizontal = false
             }
 
             //if first -> then check only vertical
@@ -77,9 +73,25 @@ class BotLogic() {
         }
     }
 
-    fun tryToKnowOrientation(cells: Array<Cell>) {
-        if (idOfCellsToOpen.isNotEmpty() && cells[idOfCellsToOpen[0]].hasShip()) {
-            shipOrientation = nextCellWasCalledFromHorizontal
+    fun knowOrientation(cells: Array<Cell>, id: Int) {
+        Log.d("knowOrientation", "lastIdWithShip = $lastIdWithShip, shipOrientation = ?")
+
+        if (lastIdWithShip != null) {
+            //if orientation is horizontal => true, else => false
+            shipOrientation = (id == lastIdWithShip!! + 1) || (id == lastIdWithShip!! - 1)
+            Log.d("knowOrientation", "shipOrientation = $shipOrientation")
+
+            //remove empty cells, that we added in "getUnopenedCellsAroundWoundedCell"
+            if (shipOrientation!!) {
+                idOfCellsToOpen.remove(lastIdWithShip!! - 10)
+                idOfCellsToOpen.remove(lastIdWithShip!! + 10)
+
+            } else {
+                idOfCellsToOpen.remove(lastIdWithShip!! - 1)
+                idOfCellsToOpen.remove(lastIdWithShip!! + 1)
+            }
+            Log.d("openCell", "idOfCellsToOpen = $idOfCellsToOpen")
         }
+
     }
 }

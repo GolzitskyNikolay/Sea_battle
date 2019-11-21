@@ -11,9 +11,11 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.seaBattle.R
 import com.example.seaBattle.core.Field
 import com.example.seaBattle.core.LogicForAdding
@@ -30,7 +32,7 @@ class CreateField : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.grid)
+        setContentView(R.layout.creating_field)
 
         field.createEmptyField(field, findViewById(R.id.gridLayout_field), this)
 
@@ -45,29 +47,27 @@ class CreateField : AppCompatActivity(),
         val ship3 = findViewById<ImageView>(R.id.ship_3)
         val ship4 = findViewById<ImageView>(R.id.ship_4)
 
-        // we can move ships from field to these ones
-        ship1.setOnDragListener(this)
-        ship2.setOnDragListener(this)
-        ship3.setOnDragListener(this)
-        ship4.setOnDragListener(this)
-
         // we can move ships from these ones to field
         ship1.setOnTouchListener(this)
         ship2.setOnTouchListener(this)
         ship3.setOnTouchListener(this)
         ship4.setOnTouchListener(this)
 
-        val button2 = findViewById<Button>(R.id.rotate_2)
-        val button3 = findViewById<Button>(R.id.rotate_3)
-        val button4 = findViewById<Button>(R.id.rotate_4)
+        val button2 = findViewById<ImageButton>(R.id.rotate_2)
+        val button3 = findViewById<ImageButton>(R.id.rotate_3)
+        val button4 = findViewById<ImageButton>(R.id.rotate_4)
 
         button2.setOnClickListener(this)
         button3.setOnClickListener(this)
         button4.setOnClickListener(this)
 
+        //cells will catch ships
         for (cell in field.cells) {
             cell.setOnDragListener(this)
         }
+
+        //if user won't add ship
+        findViewById<ConstraintLayout>(R.id.layout_in_creating_field).setOnDragListener(this)
     }
 
     // change ship orientation
@@ -137,6 +137,7 @@ class CreateField : AppCompatActivity(),
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouch(view: View?, motionEvent: MotionEvent?): Boolean {
+        Log.d("creatingField", "onTouch")
         return if (motionEvent!!.action == MotionEvent.ACTION_DOWN) {
             val dsb = View.DragShadowBuilder(view)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -153,128 +154,140 @@ class CreateField : AppCompatActivity(),
 
     override fun onDrag(container: View?, dragEvent: DragEvent?): Boolean {
         val view = dragEvent!!.localState as View
-        val logicForAdding = LogicForAdding()
 
-        when (dragEvent.action) {
+        // user moves ship to field
+        if (container != findViewById(R.id.layout_in_creating_field)) {
+            val logicForAdding = LogicForAdding()
 
-            DragEvent.ACTION_DRAG_ENTERED -> {
-                Log.d("onDrag", "ACTION_DRAG_ENTERED")
-                when {
-                    view.id == R.id.ship_1 -> {
-                        field.addInListCellsToRedraw(
-                            container!!.id, logicForAdding, 1, true, field, false,
-                            cellsWithGoodMove, cellsWithBadMove
-                        )
+            when (dragEvent.action) {
+
+                DragEvent.ACTION_DRAG_ENTERED -> {
+                    Log.d("creatingField", "ACTION_DRAG_ENTERED")
+                    when {
+                        view.id == R.id.ship_1 -> {
+                            field.addInListCellsToRedraw(
+                                container!!.id, logicForAdding, 1, true, field, false,
+                                cellsWithGoodMove, cellsWithBadMove
+                            )
+                        }
+
+                        view.id == R.id.ship_2 -> {
+                            field.addInListCellsToRedraw(
+                                container!!.id, logicForAdding, 2, ship2IsHorizontal, field, false,
+                                cellsWithGoodMove, cellsWithBadMove
+                            )
+                        }
+
+                        view.id == R.id.ship_3 -> {
+                            field.addInListCellsToRedraw(
+                                container!!.id, logicForAdding, 3, ship3IsHorizontal, field, false,
+                                cellsWithGoodMove, cellsWithBadMove
+                            )
+                        }
+
+                        view.id == R.id.ship_4 -> {
+                            field.addInListCellsToRedraw(
+                                container!!.id, logicForAdding, 4, ship4IsHorizontal, field, false,
+                                cellsWithGoodMove, cellsWithBadMove
+                            )
+                        }
                     }
 
-                    view.id == R.id.ship_2 -> {
-                        field.addInListCellsToRedraw(
-                            container!!.id, logicForAdding, 2, ship2IsHorizontal, field, false,
-                            cellsWithGoodMove, cellsWithBadMove
-                        )
+                    for (e in cellsWithGoodMove) {
+                        field.cells[e - 1].background =
+                            getDrawable(R.drawable.button_good_move)
                     }
 
-                    view.id == R.id.ship_3 -> {
-                        field.addInListCellsToRedraw(
-                            container!!.id, logicForAdding, 3, ship3IsHorizontal, field, false,
-                            cellsWithGoodMove, cellsWithBadMove
-                        )
+                    for (e in cellsWithBadMove) {
+                        field.cells[e - 1].background =
+                            getDrawable(R.drawable.button_bad_move)
                     }
 
-                    view.id == R.id.ship_4 -> {
-                        field.addInListCellsToRedraw(
-                            container!!.id, logicForAdding, 4, ship4IsHorizontal, field, false,
-                            cellsWithGoodMove, cellsWithBadMove
-                        )
-                    }
                 }
 
-                for (e in cellsWithGoodMove) {
-                    field.cells[e - 1].background =
-                        getDrawable(R.drawable.button_good_move)
+                DragEvent.ACTION_DRAG_EXITED -> {
+                    Log.d("creatingField", "ACTION_DRAG_EXITED")
+
+                    val allSelectedCells = cellsWithGoodMove
+                    allSelectedCells.addAll(cellsWithBadMove)
+                    for (id in allSelectedCells) {
+                        if (field.cells[id - 1].hasShip()) {
+                            field.cells[id - 1].background = getDrawable(R.drawable.ship_1)
+                        } else {
+                            field.cells[id - 1].background =
+                                getDrawable(R.drawable.button_background)
+                        }
+                    }
+                    cellsWithBadMove.clear()
+                    cellsWithGoodMove.clear()
                 }
 
-                for (e in cellsWithBadMove) {
-                    field.cells[e - 1].background =
-                        getDrawable(R.drawable.button_bad_move)
+                DragEvent.ACTION_DROP -> {
+                    Log.d("creatingField", "ACTION_DROP")
+
+                    view.visibility = View.VISIBLE
+                    val owner = view.parent as ViewGroup
+                    owner.removeView(view)
+
+                    if (cellsWithGoodMove.isNotEmpty()) {
+                        updateText(view)
+
+                        for (id in cellsWithGoodMove) {
+                            field.cells[id - 1].background = getDrawable(R.drawable.ship_1)
+                            field.cells[id - 1].setHasShip()
+                            field.ships.add(id.toString())
+                        }
+                        field.currentCountOfShips++
+                    }
+
+                    for (id in cellsWithBadMove) {
+                        if (field.cells[id - 1].hasShip()) {
+                            field.cells[id - 1].background = getDrawable(R.drawable.ship_1)
+                        } else {
+                            field.cells[id - 1].background =
+                                getDrawable(R.drawable.button_background)
+                        }
+
+                    }
+
+                    cellsWithBadMove.clear()
+                    cellsWithGoodMove.clear()
+
+                    if ((view.id == R.id.ship_1 &&
+                                field.countOfSingleDeck < field.maxCountOfSingleDeck) ||
+                        (view.id == R.id.ship_2 &&
+                                field.countOfDoubleDeck < field.maxCountOfDoubleDeck) ||
+                        (view.id == R.id.ship_3 &&
+                                field.countOfThreeDeck < field.maxCountOfThreeDeck) ||
+                        (view.id == R.id.ship_4 &&
+                                field.countOfFourDeck < field.maxCountOfFourDeck)
+                    ) {
+                        owner.addView(view)
+                    }
+
+                    if ((field.countOfSingleDeck == field.maxCountOfSingleDeck) &&
+                        (field.countOfDoubleDeck == field.maxCountOfDoubleDeck) &&
+                        (field.countOfThreeDeck == field.maxCountOfThreeDeck) &&
+                        (field.countOfFourDeck == field.maxCountOfFourDeck)
+                    ) {
+                        val start = findViewById<Button>(R.id.start)
+                        start.visibility = View.VISIBLE
+
+                        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+
+                        val editor = preferences.edit()
+                        editor.putStringSet("cells with ship", field.ships)
+                        editor.apply()
+
+                        start.setOnClickListener { startActivity(Intent(this, Play::class.java)) }
+                    }
                 }
             }
-
-            DragEvent.ACTION_DRAG_EXITED -> {
-                Log.d("onDrag", "ACTION_DRAG_EXITED")
-
-                val allSelectedCells = cellsWithGoodMove
-                allSelectedCells.addAll(cellsWithBadMove)
-                for (id in allSelectedCells) {
-                    if (field.cells[id - 1].hasShip()) {
-                        field.cells[id - 1].background = getDrawable(R.drawable.ship_1)
-                    } else {
-                        field.cells[id - 1].background =
-                            getDrawable(R.drawable.button_background)
-                    }
-                }
-                cellsWithBadMove.clear()
-                cellsWithGoodMove.clear()
-            }
-
-            DragEvent.ACTION_DROP -> {
-                Log.d("onDrag", "ACTION_DROP")
-
-                view.visibility = View.VISIBLE
-                val owner = view.parent as ViewGroup
-                owner.removeView(view)
-
-                if (cellsWithGoodMove.isNotEmpty()) {
-                    updateText(view)
-
-                    for (id in cellsWithGoodMove) {
-                        field.cells[id - 1].background = getDrawable(R.drawable.ship_1)
-                        field.cells[id - 1].setHasShip()
-                        field.ships.add(id.toString())
-                    }
-                    field.currentCountOfShips++
-                }
-
-                for (id in cellsWithBadMove) {
-                    if (field.cells[id - 1].hasShip()) {
-                        field.cells[id - 1].background = getDrawable(R.drawable.ship_1)
-                    } else {
-                        field.cells[id - 1].background =
-                            getDrawable(R.drawable.button_background)
-                    }
-
-                }
-
-                cellsWithBadMove.clear()
-                cellsWithGoodMove.clear()
-
-                if ((view.id == R.id.ship_1 &&
-                            field.countOfSingleDeck < field.maxCountOfSingleDeck) ||
-                    (view.id == R.id.ship_2 &&
-                            field.countOfDoubleDeck < field.maxCountOfDoubleDeck) ||
-                    (view.id == R.id.ship_3 &&
-                            field.countOfThreeDeck < field.maxCountOfThreeDeck) ||
-                    (view.id == R.id.ship_4 &&
-                            field.countOfFourDeck < field.maxCountOfFourDeck)
-                ) {
-                    owner.addView(view)
-                }
-
-                if ((field.countOfSingleDeck == field.maxCountOfSingleDeck) &&
-                    (field.countOfDoubleDeck == field.maxCountOfDoubleDeck) &&
-                    (field.countOfThreeDeck == field.maxCountOfThreeDeck) &&
-                    (field.countOfFourDeck == field.maxCountOfFourDeck)
-                ) {
-                    val start = findViewById<Button>(R.id.start)
-                    start.visibility = View.VISIBLE
-
-                    val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-
-                    val editor = preferences.edit()
-                    editor.putStringSet("cells with ship", field.ships)
-                    editor.apply()
-
-                    start.setOnClickListener { startActivity(Intent(this, Play::class.java)) }
+        } else { // user didn't add ship to our field
+            when (dragEvent.action) {
+                DragEvent.ACTION_DROP -> {
+                    Log.d("creatingField", "ACTION_DROP")
+                    view.visibility = View.VISIBLE
                 }
             }
         }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">sea_battle</string>
+    <string name="app_name">Sea battle</string>
     <string name="title_activity_main2">Main2Activity</string>
     <string name="play">Играть</string>
     <string name="text_4">0 из 1</string>

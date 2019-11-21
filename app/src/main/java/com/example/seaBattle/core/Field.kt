@@ -22,6 +22,7 @@ class Field {
     var maxCountOfThreeDeck = 2
     var maxCountOfFourDeck = 1
 
+    var countOfDestroyedShips = 0
     val maxCountOfShips = 10
 
     fun createEmptyField(field: Field, layout: GridLayout, context: Context) {
@@ -257,8 +258,10 @@ class Field {
         for (i in 1..ship.size) {
             if (i == 1) {
                 cellsAroundShip.addAll(getCellsAroundCell(ship[i - 1], null, field))
+                Log.d("getCellsAroundShip", "ship = 1; cellsAroundShip = $cellsAroundShip")
             } else {
                 cellsAroundShip.addAll(getCellsAroundCell(ship[i - 1], ship[i - 2], field))
+                Log.d("getCellsAroundShip", "ship = $i; cellsAroundShip = $cellsAroundShip")
             }
         }
 
@@ -326,30 +329,47 @@ class Field {
     }
 
     /*
-    If ship is destroyed -> return list of cells with ship, else -> null.
+    If ship is destroyed -> true, else -> false
      */
-    fun isShipDestroyed(
-        currentId: Int, field: Field, idBefore: Int?, ship: MutableList<Int>
-    ): MutableList<Int>? {
-        for (id in getCellsAroundCell(currentId, idBefore, field)) {
-            if (currentId != idBefore) {
-                Log.d(
-                    "isShipDestroyed", "curId = $currentId, " +
-                            "idBefore = $idBefore, ship = $ship, id = $id"
-                )
-                val cell = field.cells[id - 1]
+    fun isShipDestroyed(currentId: Int, field: Field): MutableList<Int> {
 
-                if (cell.hasShip() && !cell.hasShot()) {
-                    ship.removeAll(ship)
-                    break
-                }
-                else if (cell.hasShip() && cell.hasShot()) {
-                    ship.add(id)
-                    isShipDestroyed(id, field, currentId, ship)
+        val ship = mutableListOf<Int>()
+        ship.add(currentId)
+
+        val cellsAroundShip = mutableListOf<Int>()
+
+        var i = 0
+
+        while (true) {
+
+            Log.d("logic", "id in ship = ${ship[i]}")
+            getCellsAroundCell(ship[i], null, field).forEach { e ->
+
+                if (field.cells[e - 1].hasShip()) {
+
+                    Log.d("logic", "id $e around cell has ship")
+
+                    if (!field.cells[e - 1].hasShot()) {
+                        Log.d("logic", "id $e around cell hasn't shot")
+                        cellsAroundShip.clear()
+                        return cellsAroundShip
+
+                    } else if (!ship.contains(e)) {
+                        Log.d("logic", "id $e around must be in ship")
+                        ship.add(e)
+                    }
+
+                } else if (!cellsAroundShip.contains(e)) {
+                    Log.d("logic", "id $e around ship hasn't ship")
+                    cellsAroundShip.add(e)
                 }
             }
-        }
-        return ship
-    }
 
+            if (i + 1 == ship.size) break
+            else i++
+        }
+
+
+        return cellsAroundShip
+    }
 }

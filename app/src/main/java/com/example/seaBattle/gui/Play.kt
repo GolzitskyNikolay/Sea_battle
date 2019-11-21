@@ -3,12 +3,16 @@ package com.example.seaBattle.gui
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.seaBattle.R
 import com.example.seaBattle.core.BotLogic
 import com.example.seaBattle.core.Cell
 import com.example.seaBattle.core.Field
-import kotlinx.android.synthetic.main.play.*
+import kotlinx.android.synthetic.main.start_game.*
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 
 class Play : AppCompatActivity() {
     private val userField = Field()
@@ -16,14 +20,40 @@ class Play : AppCompatActivity() {
 
     private val botLogic = BotLogic()
 
+    private var isShipDestroyed = false
+
+    private var openCells = true
+
+    private var timer: Timer = Timer()
+
+    private var gameOver = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.play)
-
-        createUserField()
+        setContentView(R.layout.start_game)
 
         createBotField()
+        createUserField()
+    }
+
+    private fun createUserField() {
+
+        userField.createEmptyField(userField, findViewById(R.id.firstField), this)
+
+        //read remembered user ships
+        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+
+        val ships = preferences.getStringSet(
+            "cells with ship",
+            HashSet<String>(listOf("1", "2", "3", "4", "23", "33", "87"))
+        )
+        Log.d("createUserField", " ships = $ships")
+        for (id in ships!!) {
+            val cell = userField.cells[id.toInt() - 1]
+            cell.background = getDrawable(R.drawable.ship_1)
+            cell.setHasShip()
+        }
     }
 
     private fun createBotField() {
@@ -39,7 +69,7 @@ class Play : AppCompatActivity() {
         while (botField.currentCountOfShips != botField.maxCountOfShips) {
 
             val newShip = botField.addRandomShip(emptyCells, botField)
-            Log.d("createBotField", "new ship = $newShip")
+            Log.d("logic", "new ship in bot field= $newShip")
 
             emptyCells.removeAll(newShip)
             emptyCells.removeAll(botField.getCellsAroundShip(newShip, botField))
@@ -53,30 +83,95 @@ class Play : AppCompatActivity() {
 
             cell.setOnClickListener {
                 cell.setOnClickListener(null)
-                cell.setHasShot()
 
-                openCell(field, cell)
+                //if user opened empty cell -> bot starts his turn
+                if (!openCell(field, cell, null)) {
+
+                    //disable cells
+                    botField.cells.forEach { cell ->
+                        cell.isEnabled = false
+                    }
+                    turn.setImageResource(R.drawable.left)
+
+                    openCells = true
+                    timer = Timer()
+
+                    timer.scheduleAtFixedRate(object : TimerTask() {
+                        override fun run() {
+                            runOnUiThread {
+
+                                while (openCells) {
+                                    startBotLogic()
+                                    if (userField.countOfDestroyedShips ==
+                                        userField.maxCountOfShips
+                                    ) {
+                                        finishGame(false)
+                                    }
+                                }
+
+                                if (!gameOver) {
+                                    //bot finished his turn
+                                    turn.setImageResource(R.drawable.right)
+                                    botField.cells.forEach { cell ->
+                                        cell.isEnabled = true
+                                    }
+                                }
+                            }
+                            cancel()
+                        }
+                    }, 1000, 1000)
+                }
             }
         }
     }
 
     // true -> has ship, else -> false
-    private fun openCell(field: Field, cell: Cell): Boolean {
+    private fun openCell(field: Field, cell: Cell, botLogic: BotLogic?): Boolean {
+
+        cell.setHasShot()
 
         //ship is wounded
         if (cell.hasShip()) {
             cell.background = getDrawable(R.drawable.ship_x)
 
-            val ship = mutableListOf<Int>()
-            ship.add(cell.id)
+            Log.d("openCell", "hasShip = ${cell.hasShip()}; hasShot = ${cell.hasShot()}")
 
-            if (field.isShipDestroyed(cell.id, field, null, ship) != null) {
-                Log.d("addListeners", "ship = $ship")
+            val cellsAroundShip = field.isShipDestroyed(cell.id, field)
 
-                //mark empty cells around ship
-                for (id in field.getCellsAroundShip(ship, field)) {
+            Log.d("logic", "cellsAroundShip = $cellsAroundShip")
+
+            //if ship is destroyed
+            if (cellsAroundShip.isNotEmpty()) {
+
+                //open empty cells around destroyed ship
+                for (id in cellsAroundShip) {
                     if (!field.cells[id - 1].hasShip()) {
                         field.cells[id - 1].background = getDrawable(R.drawable.sqr_point)
+                        field.cells[id - 1].setHasShot()
+                    }
+                }
+
+                //method was called from bot, remember opened cells
+                if (botLogic != null) {
+                    Log.d("logic", "removing cells from user field around ship from checkable")
+                    botLogic.idOfCellsToOpen.removeAll(cellsAroundShip)
+                    botLogic.closedCells.removeAll(cellsAroundShip)
+
+                    isShipDestroyed = true
+                    userField.countOfDestroyedShips++
+                    Log.d("logic", "userField, destroyed ships=${userField.countOfDestroyedShips}")
+
+                } else {
+                    Log.d("logic", "removing listeners from bot field around destroyed ship")
+                    cellsAroundShip.forEach { id ->
+                        botField.cells[id - 1].setOnClickListener(null)
+                    }
+                    botField.countOfDestroyedShips++
+                    Log.d("logic", "botField destroyed ships=${botField.countOfDestroyedShips}")
+
+                    //user won
+                    if (botField.countOfDestroyedShips == botField.maxCountOfShips) {
+                        finishGame(true)
                     }
                 }
             }
@@ -86,75 +181,79 @@ class Play : AppCompatActivity() {
             //change image of button
             cell.background = getDrawable(R.drawable.sqr_point)
 
-            if (field == userField) {
-                changeTurn(userField)
-
-            } else {
-                changeTurn(botField)
-            }
-
             return false
         }
     }
 
-    private fun createUserField() {
+    private fun startBotLogic() {
 
-        userField.createEmptyField(userField, findViewById(R.id.firstField), this)
+        val id = botLogic.getIdOfNextCell()
+        Log.d("logic", "*start of moves*\n id = $id; cellsToOpen = ${botLogic.idOfCellsToOpen}")
+        Log.d("logic", "orientation = ${botLogic.shipOrientation}")
 
-        //read remembered user ships
-        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        if (id != null) {
 
-        val ships = preferences.getStringSet(
-            "cells with ship",
-            HashSet<String>(listOf("1", "2", "3", "4", "23", "33", "87"))
-        )
-        Log.d("createUserField", " ships = $ships")
-        for (id in ships) {
-            val cell = userField.cells[id.toInt() - 1]
-            cell.background = getDrawable(R.drawable.ship_1)
-            cell.setHasShip()
-        }
-    }
+            //if cell has ship
+            if (openCell(userField, userField.cells[id - 1], botLogic)) {
 
-    private fun changeTurn(currentField: Field) {
+                if (!isShipDestroyed) {
 
-        if (currentField == botField) {
+                    //if we don't know ship orientation
+                    if (botLogic.shipOrientation == null) {
 
-            //disable cells
-            botField.cells.forEach { cell ->
-                cell.isEnabled = false
-            }
+                        //when we have 2 wounded cells ->  we can know ship orientation
+                        if (botLogic.lastIdWithShip != null) {
+                            botLogic.knowOrientation(userField.cells, id)
+                            botLogic.getUnopenedCellsAroundWoundedCell(id, userField.cells)
 
-            turn.setImageResource(R.drawable.left)
+                            Log.d("logic", "ship orientation = ${botLogic.shipOrientation}")
 
-            var id = botLogic.getIdOfNextCell()
+                        } else {
+                            botLogic.getUnopenedCellsAroundWoundedCell(id, userField.cells)
+                        }
+                        //remember id of last wounded cell to know ship orientation
+                        botLogic.lastIdWithShip = id
 
-            if (id != null) {
-                while (openCell(userField, userField.cells[id!! - 1])) {
-                    Log.d("changeTurn", "id = $id")
-                    Log.d("changeTurn", "cells = ${botLogic.idOfCellsToOpen}")
-
-                    botLogic.getCellsAroundWoundedCell(id, userField.cells)
-
-                    id = botLogic.getIdOfNextCell()
-
-                    if (botLogic.getOrientation() == null) {
-                        botLogic.tryToKnowOrientation(userField.cells)
+                    } else {
+                        botLogic.getUnopenedCellsAroundWoundedCell(id, userField.cells)
                     }
 
-                    Thread.sleep(1000)
+                } else { //ship is destroyed
+                    isShipDestroyed = false
+                    botLogic.shipOrientation = null
+                    botLogic.lastIdWithShip = null
                 }
+                Log.d("logic", "orientation = ${botLogic.shipOrientation}")
+                Log.d("logic", "*end of moves*\n cellsToOpen = ${botLogic.idOfCellsToOpen}")
 
-                //bot finished his moves
             } else {
-                botLogic.chooseRandomCell()
+                //cell is empty, stop timer, begin user turn
+                openCells = false
             }
 
-            turn.setImageResource(R.drawable.right)
+        } else {
+            // bot doesn't know where can be ship -> takes random cell from unopened cells
+            if (botLogic.closedCells.isNotEmpty()) {
+                botLogic.chooseRandomCell()
 
-            botField.cells.forEach { cell ->
-                cell.isEnabled = true
+            } else { // user field hasn't unopened cells
+                openCells = false
             }
         }
     }
+
+    private fun finishGame(isPlayerWon: Boolean) {
+        if (isPlayerWon) {
+            Toast.makeText(this, "Player won!!!", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(this, "Bot won!!!", Toast.LENGTH_LONG).show()
+        }
+
+        botField.cells.forEach { cell ->
+            if (cell.hasOnClickListeners()) {
+                cell.setOnClickListener(null)
+            }
+        }
+    }
+
 }
