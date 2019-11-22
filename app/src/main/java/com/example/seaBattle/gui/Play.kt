@@ -251,6 +251,9 @@ class Play : AppCompatActivity() {
 
         botField.cells.forEach { cell ->
             if (cell.hasOnClickListeners()) {
+                if (cell.hasShip()){
+                    cell.background = getDrawable(R.drawable.ship_1)
+                }
                 cell.setOnClickListener(null)
             }
         }
