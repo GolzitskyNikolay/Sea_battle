@@ -1,3 +1,21 @@
 <resources>
-    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="margin_cancel_action">30dp</dimen>
+    <dimen name="margin_buttons_in_creating_field">5dp</dimen>
+    <dimen name="margin_views_in_creating_field">5dp</dimen>
+    <dimen name="margin_ship_1">23dp</dimen>
+    <dimen name="margin_bottom_ship_2">10dp</dimen>
+    <dimen name="margin_top_ship_2">10dp</dimen>
+    <dimen name="margin_end_ship_2">30dp</dimen>
+    <dimen name="margin_start_ship_2">30dp</dimen>
+    <dimen name="margin_ship_3">20dp</dimen>
+    <dimen name="margin_ship_4">10dp</dimen>
+    <dimen name="margin_end_gridLayout_creating_field">50dp</dimen>
+    <dimen name="padding_gridLayout">3dp</dimen>
+    <dimen name="margin_start_second_field_start_game">30dp</dimen>
+    <dimen name="margin_start_first_field_start_game">10dp</dimen>
+    <dimen name="margin_end_first_field_start_game">30dp</dimen>
+    <dimen name="margin_end_second_field_start_game">10dp</dimen>
+    <dimen name="text_size_for_turn_text">25sp</dimen>
+    <dimen name="padding_for_turn_text">5dp</dimen>
+    <dimen name="padding_for_menu_buttons">10dp</dimen>
 </resources>

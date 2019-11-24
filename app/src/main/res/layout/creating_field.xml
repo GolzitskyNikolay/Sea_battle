@@ -17,9 +17,9 @@
         android:id="@+id/gridLayout_field"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginEnd="50dp"
+        android:layout_marginEnd="@dimen/margin_end_gridLayout_creating_field"
         android:columnCount="10"
-        android:padding="3dp"
+        android:padding="@dimen/padding_gridLayout"
         android:rowCount="10"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintDimensionRatio="1"
@@ -70,54 +70,58 @@
         android:id="@+id/ship_4"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="10dp"
+        android:layout_margin="@dimen/margin_ship_4"
         app:layout_constraintBottom_toTopOf="@+id/guideline_0.3_hor"
         app:layout_constraintEnd_toStartOf="@+id/guideline_0.166"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ship_4" />
+        app:srcCompat="@drawable/ship_4"
+        tools:ignore="ContentDescription" />
 
     <ImageView
         android:id="@+id/ship_3"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="20dp"
+        android:layout_margin="@dimen/margin_ship_3"
         app:layout_constraintBottom_toTopOf="@+id/guideline_0.6_hor"
         app:layout_constraintEnd_toStartOf="@+id/guideline_0.166"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline_0.3_hor"
-        app:srcCompat="@drawable/ship_3" />
+        app:srcCompat="@drawable/ship_3"
+        tools:ignore="ContentDescription" />
 
     <ImageView
         android:id="@+id/ship_2"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="30dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginStart="@dimen/margin_start_ship_2"
+        android:layout_marginTop="@dimen/margin_top_ship_2"
+        android:layout_marginEnd="@dimen/margin_end_ship_2"
+        android:layout_marginBottom="@dimen/margin_bottom_ship_2"
         app:layout_constraintBottom_toTopOf="@+id/guideline_0.8_hor"
         app:layout_constraintEnd_toStartOf="@+id/guideline_0.166"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline_0.6_hor"
-        app:srcCompat="@drawable/ship_2" />
+        app:srcCompat="@drawable/ship_2"
+        tools:ignore="ContentDescription" />
 
     <ImageView
         android:id="@+id/ship_1"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="25dp"
+        android:layout_margin="@dimen/margin_ship_1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/guideline_0.166"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline_0.8_hor"
-        app:srcCompat="@drawable/ship_1" />
+        app:srcCompat="@drawable/ship_1"
+        tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/text_4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
+        android:layout_margin="@dimen/margin_views_in_creating_field"
         android:text="@string/text_4"
         app:layout_constraintBottom_toTopOf="@+id/guideline_0.3_hor"
         app:layout_constraintEnd_toStartOf="@+id/guideline_0.25"
@@ -128,7 +132,7 @@
         android:id="@+id/text_3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
+        android:layout_margin="@dimen/margin_views_in_creating_field"
         android:text="@string/text_3"
         app:layout_constraintBottom_toTopOf="@+id/guideline_0.6_hor"
         app:layout_constraintEnd_toStartOf="@+id/guideline_0.25"
@@ -139,7 +143,7 @@
         android:id="@+id/text_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
+        android:layout_margin="@dimen/margin_views_in_creating_field"
         android:text="@string/text_2"
         app:layout_constraintBottom_toTopOf="@+id/guideline_0.8_hor"
         app:layout_constraintEnd_toStartOf="@+id/guideline_0.25"
@@ -150,7 +154,7 @@
         android:id="@+id/text_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
+        android:layout_margin="@dimen/margin_views_in_creating_field"
         android:text="@string/text_1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/guideline_0.25"
@@ -161,40 +165,43 @@
         android:id="@+id/rotate_4"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="5dp"
+        android:layout_margin="@dimen/margin_buttons_in_creating_field"
         android:background="@drawable/button_round"
         app:layout_constraintBottom_toTopOf="@+id/guideline_0.3_hor"
         app:layout_constraintDimensionRatio="1"
         app:layout_constraintEnd_toStartOf="@+id/guideline_0.333"
         app:layout_constraintStart_toStartOf="@+id/guideline_0.25"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/rotate" />
+        app:srcCompat="@drawable/rotate"
+        tools:ignore="ContentDescription" />
 
     <ImageButton
         android:id="@+id/rotate_3"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="5dp"
+        android:layout_margin="@dimen/margin_buttons_in_creating_field"
         android:background="@drawable/button_round"
         app:layout_constraintBottom_toTopOf="@+id/guideline_0.6_hor"
         app:layout_constraintDimensionRatio="1"
         app:layout_constraintEnd_toStartOf="@+id/guideline_0.333"
         app:layout_constraintStart_toStartOf="@+id/guideline_0.25"
         app:layout_constraintTop_toTopOf="@+id/guideline_0.3_hor"
-        app:srcCompat="@drawable/rotate" />
+        app:srcCompat="@drawable/rotate"
+        tools:ignore="ContentDescription" />
 
     <ImageButton
         android:id="@+id/rotate_2"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="5dp"
+        android:layout_margin="@dimen/margin_buttons_in_creating_field"
         android:background="@drawable/button_round"
         app:layout_constraintBottom_toTopOf="@+id/guideline_0.8_hor"
         app:layout_constraintDimensionRatio="1"
         app:layout_constraintEnd_toStartOf="@+id/guideline_0.333"
         app:layout_constraintStart_toStartOf="@+id/guideline_0.25"
         app:layout_constraintTop_toTopOf="@+id/guideline_0.6_hor"
-        app:srcCompat="@drawable/rotate" />
+        app:srcCompat="@drawable/rotate"
+        tools:ignore="ContentDescription" />
 
     <Button
         android:id="@+id/start"
@@ -212,13 +219,15 @@
         android:id="@+id/cancel_action"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintDimensionRatio="1"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="@dimen/margin_cancel_action"
         android:background="@drawable/button_round"
-        app:srcCompat="@android:drawable/ic_delete"
+        android:visibility="invisible"
+        app:layout_constraintDimensionRatio="1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/gridLayout_field"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/ic_delete"
+        tools:ignore="ContentDescription" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

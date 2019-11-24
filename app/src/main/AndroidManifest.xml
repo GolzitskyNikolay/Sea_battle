@@ -28,7 +28,8 @@
 
         <activity
             android:name=".gui.Play"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="landscape" >
+        </activity>
 
     </application>
 

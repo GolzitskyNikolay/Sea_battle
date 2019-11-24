@@ -10,29 +10,31 @@ class LogicForAdding {
     fun checkBeforeAdding(
         kindOfShip: Int, id: Int,
         orientation: Boolean,
-        cells: Array<Cell>
+        field: Field
     ): Boolean {
 
-        if (kindOfShip == 1) return checkCellsAroundCell(id, cells)
+        val cells = field.cells
+
+        if (kindOfShip == 1) return checkCellsAroundCell(id, field)
 
         // for horizontal orientation we will check horizontal neighbours (id + 1, id + 2, id + 3)
-        // for vertical -> vertical (id + 10, id + 20, id + 30)
+        // for vertical -> vertical (id + size, id + 2*size, id + 3*size)
         val needToAdd: Int? = if (orientation) {
             1
         } else {
-            10
+            field.getSizeOfField()
         }
 
         //for ship_2, ship_3, ship_4
-        if (!checkCellsAroundCell(id, cells)) return false
-        if (!checkCellsAroundCell(id + 1 * needToAdd!!, cells)) return false
+        if (!checkCellsAroundCell(id, field)) return false
+        if (!checkCellsAroundCell(id + 1 * needToAdd!!, field)) return false
 
         if (kindOfShip == 3 || kindOfShip == 4) {
-            if (!checkCellsAroundCell(id + 2 * needToAdd, cells)) return false
+            if (!checkCellsAroundCell(id + 2 * needToAdd, field)) return false
         }
 
         if (kindOfShip == 4) {
-            if (!checkCellsAroundCell(id + 3 * needToAdd, cells)) return false
+            if (!checkCellsAroundCell(id + 3 * needToAdd, field)) return false
         }
 
         return true
@@ -43,45 +45,49 @@ class LogicForAdding {
     */
     private fun checkCellsAroundCell(
         idOfCurrentCell: Int,
-        cells: Array<Cell>
+        field: Field
     ): Boolean {
 
-        if (idOfCurrentCell !in 1..100) return false
+        val cells = field.cells
+        val size = field.getSizeOfField()
+
+        if (idOfCurrentCell !in 1..size * size) return false
 
         //above and left
-        if ((idOfCurrentCell > 10) && (idOfCurrentCell % 10 != 1)
-            && (cells[idOfCurrentCell - 12].hasShip())
+        if ((idOfCurrentCell > size) && (idOfCurrentCell % size != 1)
+            && (cells[idOfCurrentCell - size - 2].hasShip())
         ) return false
 
         //above
-        if ((idOfCurrentCell > 10) && (cells[idOfCurrentCell - 11].hasShip())
+        if ((idOfCurrentCell > size) && (cells[idOfCurrentCell - size - 1].hasShip())
         ) return false
 
         //above and right
-        if ((idOfCurrentCell > 10) && (idOfCurrentCell % 10 != 0)
-            && (cells[idOfCurrentCell - 10].hasShip())
+        if ((idOfCurrentCell > size) && (idOfCurrentCell % size != 0)
+            && (cells[idOfCurrentCell - size].hasShip())
         ) return false
 
         //left
-        if ((idOfCurrentCell % 10 != 1) && (cells[idOfCurrentCell - 2].hasShip())
+        if ((idOfCurrentCell % size != 1) && (cells[idOfCurrentCell - 2].hasShip())
         ) return false
 
         //right
-        if ((idOfCurrentCell % 10 != 0) && (cells[idOfCurrentCell].hasShip())
+        if ((idOfCurrentCell % size != 0) && (cells[idOfCurrentCell].hasShip())
         ) return false
 
         //under and left
-        if ((idOfCurrentCell < 91) && (idOfCurrentCell % 10 != 1)
-            && (cells[idOfCurrentCell + 8].hasShip())
+        if ((idOfCurrentCell < size * size - size + 1) && (idOfCurrentCell % size != 1)
+            && (cells[idOfCurrentCell + size - 2].hasShip())
         ) return false
 
         //under
-        if ((idOfCurrentCell < 91) && (cells[idOfCurrentCell + 9].hasShip())
+        if ((idOfCurrentCell < size * size - size + 1) &&
+            (cells[idOfCurrentCell + size - 1].hasShip())
         ) return false
 
         //under and right
-        if ((idOfCurrentCell < 91) && (idOfCurrentCell % 10 != 0)
-            && (cells[idOfCurrentCell + 10].hasShip())
+        if ((idOfCurrentCell < size * size - size + 1) && (idOfCurrentCell % size != 0)
+            && (cells[idOfCurrentCell + size].hasShip())
         ) return false
 
         return true

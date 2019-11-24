@@ -11,6 +11,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.seaBattle.R
 import com.example.seaBattle.core.Field
@@ -19,6 +20,8 @@ import kotlinx.android.synthetic.main.creating_field.*
 
 class CreateField : AppCompatActivity(),
     View.OnDragListener, View.OnTouchListener, View.OnClickListener {
+
+    private val requestCodeForPlay = 1
 
     private var field: Field = Field()
 
@@ -42,6 +45,9 @@ class CreateField : AppCompatActivity(),
         field.createEmptyField(field, gridLayout_field, this)
 
         addListeners()
+
+        // short instruction for user)
+        Toast.makeText(this, R.string.move_ships, Toast.LENGTH_SHORT).show()
     }
 
     private fun addListeners() {
@@ -83,8 +89,6 @@ class CreateField : AppCompatActivity(),
                 field.ships.remove(id.toString())
             }
 
-            updateText(null, lastShip.size)
-
             //if user suddenly decides cancel last action -> hide start button
             if (start.visibility == View.VISIBLE) {
                 start.visibility = View.INVISIBLE
@@ -109,6 +113,13 @@ class CreateField : AppCompatActivity(),
                     ship_1.visibility = View.VISIBLE
                     field.countOfSingleDeck--
                 }
+            }
+
+            updateText(null, lastShip.size)
+
+            //hide cancel_action button
+            if (field.currentCountOfShips == 0){
+                cancel_action.visibility = View.INVISIBLE
             }
         }
     }
@@ -250,7 +261,6 @@ class CreateField : AppCompatActivity(),
     private fun addShipIfCan(view: View) {
 
         if (cellsWithGoodMove.isNotEmpty()) {
-            updateText(view, null)
 
             val ship = mutableListOf<Int>()
 
@@ -262,17 +272,17 @@ class CreateField : AppCompatActivity(),
                 ship.add(id)
             }
 
-            when (ship.size){
-                4 ->{
+            when (ship.size) {
+                4 -> {
                     field.countOfFourDeck++
                 }
-                3 ->{
+                3 -> {
                     field.countOfThreeDeck++
                 }
-                2 ->{
+                2 -> {
                     field.countOfDoubleDeck++
                 }
-                1 ->{
+                1 -> {
                     field.countOfSingleDeck++
                 }
             }
@@ -280,6 +290,12 @@ class CreateField : AppCompatActivity(),
             field.currentCountOfShips++
         }
         cellsWithGoodMove.clear()
+
+        updateText(view, null)
+
+        if (cancel_action.visibility == View.INVISIBLE){
+            cancel_action.visibility = View.VISIBLE
+        }
     }
 
     /*
@@ -390,7 +406,7 @@ class CreateField : AppCompatActivity(),
             editor.putStringSet("cells with ship", field.ships)
             editor.apply()
 
-            startActivity(Intent(this, Play::class.java))
+            startActivityForResult(Intent(this, Play::class.java), requestCodeForPlay)
         }
     }
 
@@ -402,55 +418,32 @@ class CreateField : AppCompatActivity(),
         var textView: TextView? = null
         val newText = StringBuilder()
 
-        // when user added ship
-        if (view != null) {
+        if (view == ship_1 || sizeOfRemovingShip == 1) {
+            textView = text_1
+            newText.append(field.countOfSingleDeck)
 
-            when (view.id) {
-                R.id.ship_1 -> {
-                    textView = text_1
-                    newText.append(field.countOfSingleDeck)
-                }
-                R.id.ship_2 -> {
-                    textView = text_2
-                    newText.append(field.countOfDoubleDeck)
-                }
-                R.id.ship_3 -> {
-                    textView = text_3
-                    newText.append(field.countOfThreeDeck)
-                }
-                R.id.ship_4 -> {
-                    textView = text_4
-                    newText.append(field.countOfFourDeck)
-                }
-            }
+        } else if (view == ship_2 || sizeOfRemovingShip == 2) {
+            textView = text_2
+            newText.append(field.countOfDoubleDeck)
 
-            // when user deleted ship, canceled his last action
-        } else {
-            when (sizeOfRemovingShip) {
-                4 -> {
-                    textView = text_4
-                    newText.append(field.countOfFourDeck)
-                }
+        } else if (view == ship_3 || sizeOfRemovingShip == 3) {
+            textView = text_3
+            newText.append(field.countOfThreeDeck)
 
-                3 -> {
-                    textView = text_3
-                    newText.append(field.countOfThreeDeck)
-                }
-
-                2 -> {
-                    textView = text_2
-                    newText.append(field.countOfDoubleDeck)
-                }
-
-                1 -> {
-                    textView = text_1
-                    newText.append(field.countOfSingleDeck)
-                }
-            }
+        } else if (view == ship_4 || sizeOfRemovingShip == 4) {
+            textView = text_4
+            newText.append(field.countOfFourDeck)
         }
 
         val list = textView!!.text.split(" ")
         newText.append(" ").append(list[1]).append(" ").append(list[2])
         textView.text = newText
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == requestCodeForPlay){
+            finish()
+        }
     }
 }

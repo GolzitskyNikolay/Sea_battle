@@ -1,9 +1,17 @@
 <resources>
     <string name="app_name">Sea battle</string>
-    <string name="title_activity_main2">Main2Activity</string>
-    <string name="play">Играть</string>
+    <string name="play_with_bot">Играть c ботом</string>
     <string name="text_4">0 из 1</string>
     <string name="text_3">0 из 2</string>
     <string name="text_2">0 из 3</string>
     <string name="text_1">0 из 4</string>
+    <string name="bot_won">Bot won!!!</string>
+    <string name="user_won">Player won!!!</string>
+    <string name="move_ships">Для начала игры перенесите корабли на поле</string>
+    <string name="user_turn">Ваш ход</string>
+    <string name="bot_turn">Ход бота</string>
+    <string name="attention">Внимание!</string>
+    <string name="message">Текущая игра не сохранится, вы уверены, что хотите выйти?</string>
+    <string name="yes">Да</string>
+
 </resources>

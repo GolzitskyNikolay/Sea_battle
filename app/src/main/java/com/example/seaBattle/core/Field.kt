@@ -8,6 +8,11 @@ import com.example.seaBattle.R
 class Field {
 
     private var sizeOfField = 10
+
+    fun getSizeOfField(): Int {
+        return sizeOfField
+    }
+
     var cells: Array<Cell> = emptyArray()
     var currentCountOfShips = 0
     var ships = HashSet<String>()
@@ -154,7 +159,7 @@ class Field {
         cellsWithBadMove: MutableList<Int>?
     ) {
         if (!field.cells[id - 1].hasShip() &&
-            logic.checkBeforeAdding(ship, id, orientation, field.cells)
+            logic.checkBeforeAdding(ship, id, orientation, field)
         ) {
             addCells(id - 1, cellsWithGoodMove, ship, orientation, field)
 
@@ -368,7 +373,6 @@ class Field {
             if (i + 1 == ship.size) break
             else i++
         }
-
 
         return cellsAroundShip
     }

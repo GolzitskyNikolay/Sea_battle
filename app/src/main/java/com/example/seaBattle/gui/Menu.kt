@@ -2,10 +2,10 @@ package com.example.seaBattle.gui
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.view.View;
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.example.seaBattle.R
+import kotlinx.android.synthetic.main.menu_activity.*
 
 
 class Menu : AppCompatActivity(), View.OnClickListener {
@@ -15,13 +15,13 @@ class Menu : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.menu_activity)
 
-        val play = findViewById<Button>(R.id.play_button)
-        play.setOnClickListener(this)
+        play_button.setOnClickListener(this)
     }
 
     override fun onClick(v: View?) {
         if (v!!.id == R.id.play_button) {
-            startActivity(Intent(this, CreateField::class.java))
+            val intent = Intent(this, CreateField::class.java)
+            startActivity(intent)
         }
     }
 
